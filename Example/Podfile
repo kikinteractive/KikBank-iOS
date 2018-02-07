@@ -1,12 +1,12 @@
 use_frameworks!
 
 target 'KikBank_Example' do
+
   pod 'KikBank', :path => '../'
+  pod 'RxCocoa', '~> 4.0'
 
   target 'KikBank_Tests' do
     inherit! :search_paths
 
-    pod 'Quick', '~> 1.2.0'
-    pod 'Nimble', '~> 7.0.2'
   end
 end

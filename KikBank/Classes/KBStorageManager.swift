@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol KBStorageManagerType {
+public protocol KBStorageManagerType {
     func store(_ uuid: UUID, data: Data)
     func fetch(_ uuid: UUID) -> Data?
 }

@@ -9,11 +9,11 @@
 import Foundation
 import RxSwift
 
-protocol KikBankType {
+public protocol KikBankType {
     func data(with url: URL) -> Single<Data>
 }
 
-class KikBank {
+public class KikBank {
 
     private let downloadManager: KBDownloadManagerType
     private let storageManager: KBStorageManagerType
@@ -21,13 +21,13 @@ class KikBank {
     private lazy var uuidMap = [URL: UUID]()
     private lazy var disposeBag = DisposeBag()
 
-    convenience init() {
+    public convenience init() {
         let storageManager = KBStorageManager()
         let downloadManager = KBDownloadManager()
         self.init(storageManager: storageManager, downloadManager: downloadManager)
     }
 
-    required init(storageManager: KBStorageManagerType, downloadManager: KBDownloadManagerType) {
+    public required init(storageManager: KBStorageManagerType, downloadManager: KBDownloadManagerType) {
         self.storageManager = storageManager
         self.downloadManager = downloadManager
     }
@@ -35,7 +35,7 @@ class KikBank {
 
 extension KikBank: KikBankType {
 
-    func data(with url: URL) -> Single<Data> {
+    public func data(with url: URL) -> Single<Data> {
         // Check if there is an existing record
         if let uuid = uuidMap[url],
             let data = storageManager.fetch(uuid) { // TODO: Handle cache invalidation

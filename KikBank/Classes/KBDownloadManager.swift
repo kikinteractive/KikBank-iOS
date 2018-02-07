@@ -9,7 +9,7 @@
 import Foundation
 import RxSwift
 
-protocol KBDownloadManagerType {
+public protocol KBDownloadManagerType {
     func downloadData(with url: URL) -> Single<Data>
 }
 
