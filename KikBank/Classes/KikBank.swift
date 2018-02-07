@@ -38,7 +38,7 @@ extension KikBank: KikBankType {
     func data(with url: URL) -> Single<Data> {
         // Check if there is an existing record
         if let uuid = uuidMap[url],
-            let data = storageManager.fetch(uuid) {
+            let data = storageManager.fetch(uuid) { // TODO: Handle cache invalidation
             return Single<Data>.create(subscribe: { (single) -> Disposable in
                 single(.success(data))
                 return Disposables.create()

@@ -3,7 +3,6 @@ Pod::Spec.new do |s|
   s.name         = "KikBank"
   s.version      = "0.0.1"
   s.summary      = "URL Data fetch and cache framework"
-
   s.description  = <<-DESC
                    "Kik Bank is a basic URL -> Data fetch and cache framework based around RxSwift"
                    DESC
@@ -17,7 +16,7 @@ Pod::Spec.new do |s|
   s.platform = :ios, '8.0'
   s.swift_version = '4.0'
 
-  s.source_files  = "Classes", "KikBank/Classes/*.{h,m,swift}"
+  s.source_files  = "KikBank/Classes/**/*"
 
   s.dependency 'RxSwift', '~> 4.0'
 
