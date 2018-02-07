@@ -1,0 +1,599 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AD970B20202B4D7400EA5DD4 /* KikBank.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD970B16202B4D7400EA5DD4 /* KikBank.framework */; };
+		AD970B27202B4D7400EA5DD4 /* KikBank.h in Headers */ = {isa = PBXBuildFile; fileRef = AD970B19202B4D7400EA5DD4 /* KikBank.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AD970B35202B5DC800EA5DD4 /* KBAsyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD970B34202B5DC800EA5DD4 /* KBAsyncOperation.swift */; };
+		AD970B37202B5DEE00EA5DD4 /* KBNetworkRequestOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD970B36202B5DEE00EA5DD4 /* KBNetworkRequestOperation.swift */; };
+		AD970B3A202B614000EA5DD4 /* KBAsyncOperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD970B39202B614000EA5DD4 /* KBAsyncOperationTests.swift */; };
+		AD970B3C202B6BDA00EA5DD4 /* KBDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD970B3B202B6BDA00EA5DD4 /* KBDownloadManager.swift */; };
+		AD970B3E202B6E2900EA5DD4 /* KikBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD970B3D202B6E2900EA5DD4 /* KikBank.swift */; };
+		AD970B40202B6E3C00EA5DD4 /* KBStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD970B3F202B6E3C00EA5DD4 /* KBStorageManager.swift */; };
+		DB039E4A22E5557EE69F21F9 /* Pods_KikBank.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B2D0BFB7BCBB89CE1BF3C0F /* Pods_KikBank.framework */; };
+		FD685240F2F0CB92EF413D51 /* Pods_KikBankTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0469FB0C57BCDB8A716D51D7 /* Pods_KikBankTests.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AD970B21202B4D7400EA5DD4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AD970B0D202B4D7400EA5DD4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AD970B15202B4D7400EA5DD4;
+			remoteInfo = KikBank;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0469FB0C57BCDB8A716D51D7 /* Pods_KikBankTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KikBankTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0F179FE9448316773C2640D0 /* Pods-KikBank.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KikBank.release.xcconfig"; path = "Pods/Target Support Files/Pods-KikBank/Pods-KikBank.release.xcconfig"; sourceTree = "<group>"; };
+		38AE2B29D589850F9EEC1101 /* Pods-KikBank.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KikBank.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KikBank/Pods-KikBank.debug.xcconfig"; sourceTree = "<group>"; };
+		55F8C86843148C8C52003D4C /* Pods-KikBankTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KikBankTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-KikBankTests/Pods-KikBankTests.release.xcconfig"; sourceTree = "<group>"; };
+		6B2D0BFB7BCBB89CE1BF3C0F /* Pods_KikBank.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KikBank.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		792CB2726103A026684A66C5 /* Pods-KikBankTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KikBankTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-KikBankTests/Pods-KikBankTests.debug.xcconfig"; sourceTree = "<group>"; };
+		AD970B16202B4D7400EA5DD4 /* KikBank.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KikBank.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD970B19202B4D7400EA5DD4 /* KikBank.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KikBank.h; sourceTree = "<group>"; };
+		AD970B1A202B4D7400EA5DD4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AD970B1F202B4D7400EA5DD4 /* KikBankTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KikBankTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD970B26202B4D7400EA5DD4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AD970B34202B5DC800EA5DD4 /* KBAsyncOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBAsyncOperation.swift; sourceTree = "<group>"; };
+		AD970B36202B5DEE00EA5DD4 /* KBNetworkRequestOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBNetworkRequestOperation.swift; sourceTree = "<group>"; };
+		AD970B38202B613F00EA5DD4 /* KikBankTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "KikBankTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		AD970B39202B614000EA5DD4 /* KBAsyncOperationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBAsyncOperationTests.swift; sourceTree = "<group>"; };
+		AD970B3B202B6BDA00EA5DD4 /* KBDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBDownloadManager.swift; sourceTree = "<group>"; };
+		AD970B3D202B6E2900EA5DD4 /* KikBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KikBank.swift; sourceTree = "<group>"; };
+		AD970B3F202B6E3C00EA5DD4 /* KBStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBStorageManager.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AD970B12202B4D7400EA5DD4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DB039E4A22E5557EE69F21F9 /* Pods_KikBank.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD970B1C202B4D7400EA5DD4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD970B20202B4D7400EA5DD4 /* KikBank.framework in Frameworks */,
+				FD685240F2F0CB92EF413D51 /* Pods_KikBankTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		48241F2440CBC9C32D43E611 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6B2D0BFB7BCBB89CE1BF3C0F /* Pods_KikBank.framework */,
+				0469FB0C57BCDB8A716D51D7 /* Pods_KikBankTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		AD970B0C202B4D7400EA5DD4 = {
+			isa = PBXGroup;
+			children = (
+				AD970B18202B4D7400EA5DD4 /* KikBank */,
+				AD970B23202B4D7400EA5DD4 /* KikBankTests */,
+				AD970B17202B4D7400EA5DD4 /* Products */,
+				E1CD46C20D653C932BAB2B4B /* Pods */,
+				48241F2440CBC9C32D43E611 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		AD970B17202B4D7400EA5DD4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AD970B16202B4D7400EA5DD4 /* KikBank.framework */,
+				AD970B1F202B4D7400EA5DD4 /* KikBankTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AD970B18202B4D7400EA5DD4 /* KikBank */ = {
+			isa = PBXGroup;
+			children = (
+				AD970B19202B4D7400EA5DD4 /* KikBank.h */,
+				AD970B3D202B6E2900EA5DD4 /* KikBank.swift */,
+				AD970B3F202B6E3C00EA5DD4 /* KBStorageManager.swift */,
+				AD970B3B202B6BDA00EA5DD4 /* KBDownloadManager.swift */,
+				AD970B34202B5DC800EA5DD4 /* KBAsyncOperation.swift */,
+				AD970B36202B5DEE00EA5DD4 /* KBNetworkRequestOperation.swift */,
+				AD970B1A202B4D7400EA5DD4 /* Info.plist */,
+			);
+			path = KikBank;
+			sourceTree = "<group>";
+		};
+		AD970B23202B4D7400EA5DD4 /* KikBankTests */ = {
+			isa = PBXGroup;
+			children = (
+				AD970B26202B4D7400EA5DD4 /* Info.plist */,
+				AD970B39202B614000EA5DD4 /* KBAsyncOperationTests.swift */,
+				AD970B38202B613F00EA5DD4 /* KikBankTests-Bridging-Header.h */,
+			);
+			path = KikBankTests;
+			sourceTree = "<group>";
+		};
+		E1CD46C20D653C932BAB2B4B /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				38AE2B29D589850F9EEC1101 /* Pods-KikBank.debug.xcconfig */,
+				0F179FE9448316773C2640D0 /* Pods-KikBank.release.xcconfig */,
+				792CB2726103A026684A66C5 /* Pods-KikBankTests.debug.xcconfig */,
+				55F8C86843148C8C52003D4C /* Pods-KikBankTests.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		AD970B13202B4D7400EA5DD4 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD970B27202B4D7400EA5DD4 /* KikBank.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		AD970B15202B4D7400EA5DD4 /* KikBank */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AD970B2A202B4D7400EA5DD4 /* Build configuration list for PBXNativeTarget "KikBank" */;
+			buildPhases = (
+				8B43EDDFCBB134D65A140C7B /* [CP] Check Pods Manifest.lock */,
+				AD970B11202B4D7400EA5DD4 /* Sources */,
+				AD970B12202B4D7400EA5DD4 /* Frameworks */,
+				AD970B13202B4D7400EA5DD4 /* Headers */,
+				AD970B14202B4D7400EA5DD4 /* Resources */,
+				7BCEE9C07B4F70DA22BC6D6A /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KikBank;
+			productName = KikBank;
+			productReference = AD970B16202B4D7400EA5DD4 /* KikBank.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		AD970B1E202B4D7400EA5DD4 /* KikBankTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AD970B2D202B4D7400EA5DD4 /* Build configuration list for PBXNativeTarget "KikBankTests" */;
+			buildPhases = (
+				951335046338059CDFFE3BBE /* [CP] Check Pods Manifest.lock */,
+				AD970B1B202B4D7400EA5DD4 /* Sources */,
+				AD970B1C202B4D7400EA5DD4 /* Frameworks */,
+				AD970B1D202B4D7400EA5DD4 /* Resources */,
+				5BF78D25255C960436F92299 /* [CP] Embed Pods Frameworks */,
+				DB10BAC77A8A6DA955004B96 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AD970B22202B4D7400EA5DD4 /* PBXTargetDependency */,
+			);
+			name = KikBankTests;
+			productName = KikBankTests;
+			productReference = AD970B1F202B4D7400EA5DD4 /* KikBankTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AD970B0D202B4D7400EA5DD4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0920;
+				LastUpgradeCheck = 0920;
+				ORGANIZATIONNAME = "Kik Interactive";
+				TargetAttributes = {
+					AD970B15202B4D7400EA5DD4 = {
+						CreatedOnToolsVersion = 9.2;
+						LastSwiftMigration = 0920;
+						ProvisioningStyle = Automatic;
+					};
+					AD970B1E202B4D7400EA5DD4 = {
+						CreatedOnToolsVersion = 9.2;
+						LastSwiftMigration = 0920;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = AD970B10202B4D7400EA5DD4 /* Build configuration list for PBXProject "KikBank" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = AD970B0C202B4D7400EA5DD4;
+			productRefGroup = AD970B17202B4D7400EA5DD4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AD970B15202B4D7400EA5DD4 /* KikBank */,
+				AD970B1E202B4D7400EA5DD4 /* KikBankTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AD970B14202B4D7400EA5DD4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD970B1D202B4D7400EA5DD4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5BF78D25255C960436F92299 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-KikBankTests/Pods-KikBankTests-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-KikBankTests/Pods-KikBankTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		7BCEE9C07B4F70DA22BC6D6A /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-KikBank/Pods-KikBank-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8B43EDDFCBB134D65A140C7B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-KikBank-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		951335046338059CDFFE3BBE /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-KikBankTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DB10BAC77A8A6DA955004B96 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-KikBankTests/Pods-KikBankTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AD970B11202B4D7400EA5DD4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD970B3E202B6E2900EA5DD4 /* KikBank.swift in Sources */,
+				AD970B37202B5DEE00EA5DD4 /* KBNetworkRequestOperation.swift in Sources */,
+				AD970B3C202B6BDA00EA5DD4 /* KBDownloadManager.swift in Sources */,
+				AD970B40202B6E3C00EA5DD4 /* KBStorageManager.swift in Sources */,
+				AD970B35202B5DC800EA5DD4 /* KBAsyncOperation.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD970B1B202B4D7400EA5DD4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD970B3A202B614000EA5DD4 /* KBAsyncOperationTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AD970B22202B4D7400EA5DD4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AD970B15202B4D7400EA5DD4 /* KikBank */;
+			targetProxy = AD970B21202B4D7400EA5DD4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		AD970B28202B4D7400EA5DD4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		AD970B29202B4D7400EA5DD4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		AD970B2B202B4D7400EA5DD4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 38AE2B29D589850F9EEC1101 /* Pods-KikBank.debug.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = MZAK745F32;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = KikBank/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = kik.service.KikBank;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AD970B2C202B4D7400EA5DD4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0F179FE9448316773C2640D0 /* Pods-KikBank.release.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = MZAK745F32;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = KikBank/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = kik.service.KikBank;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		AD970B2E202B4D7400EA5DD4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 792CB2726103A026684A66C5 /* Pods-KikBankTests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = MZAK745F32;
+				INFOPLIST_FILE = KikBankTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = kik.service.KikBankTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "KikBankTests/KikBankTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AD970B2F202B4D7400EA5DD4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 55F8C86843148C8C52003D4C /* Pods-KikBankTests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = MZAK745F32;
+				INFOPLIST_FILE = KikBankTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = kik.service.KikBankTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "KikBankTests/KikBankTests-Bridging-Header.h";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AD970B10202B4D7400EA5DD4 /* Build configuration list for PBXProject "KikBank" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD970B28202B4D7400EA5DD4 /* Debug */,
+				AD970B29202B4D7400EA5DD4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AD970B2A202B4D7400EA5DD4 /* Build configuration list for PBXNativeTarget "KikBank" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD970B2B202B4D7400EA5DD4 /* Debug */,
+				AD970B2C202B4D7400EA5DD4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AD970B2D202B4D7400EA5DD4 /* Build configuration list for PBXNativeTarget "KikBankTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD970B2E202B4D7400EA5DD4 /* Debug */,
+				AD970B2F202B4D7400EA5DD4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AD970B0D202B4D7400EA5DD4 /* Project object */;
+}
