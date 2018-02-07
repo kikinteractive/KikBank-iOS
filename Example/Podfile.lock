@@ -1,0 +1,22 @@
+PODS:
+  - KikBank (0.1.0)
+  - Nimble (7.0.3)
+  - Quick (1.2.0)
+
+DEPENDENCIES:
+  - KikBank (from `../`)
+  - Nimble (~> 7.0.2)
+  - Quick (~> 1.2.0)
+
+EXTERNAL SOURCES:
+  KikBank:
+    :path: ../
+
+SPEC CHECKSUMS:
+  KikBank: ff9e85b2ae47701bce4dbaaa04ee3c2b8d274eb1
+  Nimble: 7f5a9c447a33002645a071bddafbfb24ea70e0ac
+  Quick: 58d203b1c5e27fff7229c4c1ae445ad7069a7a08
+
+PODFILE CHECKSUM: dd66293b40cf6542ee669321b1e2adf82be08a27
+
+COCOAPODS: 1.4.0
