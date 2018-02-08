@@ -10,6 +10,9 @@ import Foundation
 
 public protocol KBStorageManagerType {
     func store(_ uuid: String, data: Data)
+    func store(_ uuid: String, data: Data, cachePolicy: KBCachePolicy)
+    func store(_ uuid: String, data: Data, cachePolicy: KBCachePolicy, expiryDate: Date?)
+    
     func fetch(_ uuid: String) -> Data?
 }
 
@@ -94,7 +97,7 @@ class KBStorageManager {
     }
 }
 
-enum KBCachePolicy {
+public enum KBCachePolicy {
     case none
     case memory
     case disk
@@ -102,12 +105,18 @@ enum KBCachePolicy {
 
 extension KBStorageManager: KBStorageManagerType {
 
-    func store(_ uuid: String, data: Data) {
-        store(uuid, data: data, cachePolicy: .memory)
+    public func store(_ uuid: String, data: Data) {
+        store(uuid, data: data, cachePolicy: .memory, expiryDate: nil)
     }
 
-    func store(_ uuid: String, data: Data, cachePolicy: KBCachePolicy) {
+    public func store(_ uuid: String, data: Data, cachePolicy: KBCachePolicy) {
+        store(uuid, data: data, cachePolicy: cachePolicy, expiryDate: nil)
+    }
+
+    public func store(_ uuid: String, data: Data, cachePolicy: KBCachePolicy, expiryDate: Date?) {
         let asset = KBAsset(uuid: uuid, data: data)
+        asset.expiryDate = expiryDate
+
         switch cachePolicy {
         case .disk:
             writeToDisk(asset)
@@ -158,7 +167,7 @@ class KBAsset: NSObject {
 
     func isValid() -> Bool {
         if let expiryDate = expiryDate {
-            return Date().timeIntervalSince(expiryDate) > 0
+            return expiryDate > Date()
         }
         return true
     }
