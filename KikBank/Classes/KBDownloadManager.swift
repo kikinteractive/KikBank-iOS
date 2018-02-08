@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 
 public protocol KBDownloadManagerType {
-    func downloadData(with url: URL) -> Observable<Data>
+    func downloadData(with url: URL) -> Single<Data>
 }
 
 class KBDownloadManager: KBDownloadManagerType {
@@ -21,25 +21,29 @@ class KBDownloadManager: KBDownloadManagerType {
         return queue
     }()
 
-    func downloadData(with url: URL) -> Observable<Data> {
-        return Observable<Data>.create({ [weak self] (observable) -> Disposable in
-            guard let this = self else { return Disposables.create() }
+    func downloadData(with url: URL) -> Single<Data> {
+        return Observable<Data>
+            .create({ [weak self] (observable) -> Disposable in
+                guard let this = self else { return Disposables.create() }
 
-            print("KBDownloadManager - Fetching - \(url)")
+                print("KBDownloadManager - Fetching - \(url)")
 
-            let request = KBNetworkRequestOperation(url: url)
-            request.completionBlock = {
-                print("KBDownloadManager - Done - \(url)")
-                guard let data = request.result?.data else {
-                    observable.onError(NSError())
-                    return
+                let request = KBNetworkRequestOperation(url: url)
+                request.completionBlock = {
+                    print("KBDownloadManager - Done - \(url)")
+                    guard let data = request.result?.data else {
+                        observable.onError(NSError())
+                        return
+                    }
+                    observable.onNext(data)
                 }
-                observable.onNext(data)
-            }
 
-            this.downloadQueue.addOperation(request)
+                this.downloadQueue.addOperation(request)
 
-            return Disposables.create { request.cancel() }
-        }).share()
+                return Disposables.create { request.cancel() }
+            })
+            .share()
+            .take(1)
+            .asSingle()
     }
 }

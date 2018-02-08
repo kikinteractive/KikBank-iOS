@@ -78,23 +78,23 @@ class KBStorageManager {
         do {
             let data = NSKeyedArchiver.archivedData(withRootObject: asset)
             try data.write(to: pathURL, options: .atomic)
+            print("KBStorageManager - Writing Record to Disk - \(asset.uuid)")
         } catch {
-            print("KBStorageManager - Error writing to disk - \(error)")
+            print("KBStorageManager - Error Writing Record to Disk - \(error)")
         }
     }
 
     private func delete(_ asset: KBAsset) {
-        guard let pathString = contentURL?.appendingPathComponent(asset.uuid).absoluteString else {
+        guard let pathURL = contentURL?.appendingPathExtension(asset.uuid) else {
             return
         }
 
-        let fullPath = "file:///" + pathString
-
-        if FileManager.default.fileExists(atPath: fullPath) {
+        if FileManager.default.fileExists(atPath: pathURL.path) {
             do {
-                try FileManager.default.removeItem(atPath: fullPath)
+                try FileManager.default.removeItem(at: pathURL)
+                print("KBStorageManager - Deleting Record - \(asset.uuid)")
             } catch {
-                print("KBStorageManager - Error deleting file - \(error)")
+                print("KBStorageManager - Error Deleting Record - \(asset.uuid)")
             }
         }
     }
@@ -109,7 +109,7 @@ extension KBStorageManager: KBStorageManagerType {
         switch options.writePolicy {
         case .disk:
             writeToDisk(asset)
-            fallthrough
+            fallthrough // Disk items are included in memory (for now?)
         case .memory:
             memoryCache[uuid] = asset
         default:

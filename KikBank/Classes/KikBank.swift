@@ -10,15 +10,15 @@ import Foundation
 import RxSwift
 
 public protocol KikBankType {
-    func data(with url: URL, options: KBRequestParameters) -> Observable<Data>
+    func data(with url: URL, options: KBRequestParameters) -> Single<Data>
 }
 
 public class KikBank {
 
+    private lazy var disposeBag = DisposeBag()
+
     private let downloadManager: KBDownloadManagerType
     private let storageManager: KBStorageManagerType
-
-    private lazy var disposeBag = DisposeBag()
 
     public convenience init() {
         let storageManager = KBStorageManager()
@@ -34,7 +34,7 @@ public class KikBank {
 
 extension KikBank: KikBankType {
 
-    public func data(with url: URL, options: KBRequestParameters) -> Observable<Data> {
+    public func data(with url: URL, options: KBRequestParameters) -> Single<Data> {
         let uuid = String(describing: url.absoluteString.hashValue) // NOTE: this is not guaranteed between sessions?
         guard uuid != "" else {
             return .error(NSError())
@@ -51,7 +51,7 @@ extension KikBank: KikBankType {
 
         // Cache on completion
         download
-            .subscribe(onNext: { [weak self] (data) in
+            .subscribe(onSuccess: { [weak self] (data) in
                 self?.storageManager.store(uuid, data: data, options: options)
                 }, onError: { (error) in
                     print("KikBank - \(error)")
@@ -72,7 +72,7 @@ public struct KBRequestParameters {
     }
 }
 
-// Specify where data should be read
+// Specify how data should be read
 public enum KBReadPolicy {
     case cache // Check the local storage for a copy first
     case network // Force a network fetch
@@ -81,6 +81,6 @@ public enum KBReadPolicy {
 // Specify how the data should be saved
 public enum KBWritePolicy {
     case none // Don't save anything
-    case memory // Write only to memory, lost on bank dealloc
-    case disk // Write to device, recovered between sessions
+    case memory // Write only to memory
+    case disk // Write to device
 }
