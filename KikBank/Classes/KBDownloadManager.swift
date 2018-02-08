@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 
 public protocol KBDownloadManagerType {
-    func downloadData(with url: URL) -> Single<Data>
+    func downloadData(with request: URLRequest) -> Single<Data>
 }
 
 class KBDownloadManager: KBDownloadManagerType {
@@ -21,29 +21,31 @@ class KBDownloadManager: KBDownloadManagerType {
         return queue
     }()
 
-    func downloadData(with url: URL) -> Single<Data> {
-        return Observable<Data>
-            .create({ [weak self] (observable) -> Disposable in
-                guard let this = self else { return Disposables.create() }
+    func downloadData(with request: URLRequest) -> Single<Data> {
+        return Observable<Data>.create({ [weak self] (observable) -> Disposable in
+            guard let this = self, let url = request.url else {
+                observable.onError(NSError())
+                return Disposables.create()
+            }
 
-                print("KBDownloadManager - Fetching - \(url)")
+            print("KBDownloadManager - Fetching - \(url))")
 
-                let request = KBNetworkRequestOperation(url: url)
-                request.completionBlock = {
-                    print("KBDownloadManager - Done - \(url)")
-                    guard let data = request.result?.data else {
-                        observable.onError(NSError())
-                        return
-                    }
-                    observable.onNext(data)
+            let request = KBNetworkRequestOperation(request: request)
+            request.completionBlock = {
+                print("KBDownloadManager - Done - \(url)")
+                guard let data = request.result?.data else {
+                    observable.onError(NSError())
+                    return
                 }
+                observable.onNext(data)
+            }
 
-                this.downloadQueue.addOperation(request)
+            this.downloadQueue.addOperation(request)
 
-                return Disposables.create { request.cancel() }
-            })
-            .share()
-            .take(1)
-            .asSingle()
+            return Disposables.create { request.cancel() }
+        })
+        .share()
+        .take(1)
+        .asSingle()
     }
 }

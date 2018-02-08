@@ -108,9 +108,11 @@ extension KBStorageManager: KBStorageManagerType {
 
         switch options.writePolicy {
         case .disk:
+            print("KBStorageManager - Writing to Disk - \(asset.uuid)")
             writeToDisk(asset)
             fallthrough // Disk items are included in memory (for now?)
         case .memory:
+            print("KBStorageManager - Writing to Memory - \(asset.uuid)")
             memoryCache[uuid] = asset
         default:
             break

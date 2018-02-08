@@ -12,6 +12,9 @@ import RxSwift
 public protocol KikBankType {
     func data(with url: URL) -> Single<Data>
     func data(with url: URL, options: KBRequestParameters) -> Single<Data>
+
+    func data(with request: URLRequest) -> Single<Data>
+    func data(with request: URLRequest, options: KBRequestParameters) -> Single<Data>
 }
 
 public class KikBank {
@@ -36,12 +39,23 @@ public class KikBank {
 extension KikBank: KikBankType {
 
     public func data(with url: URL) -> Single<Data> {
-        return data(with: url, options: KBRequestParameters())
+        let request = URLRequest(url: url)
+        return data(with: request, options: KBRequestParameters())
     }
 
     public func data(with url: URL, options: KBRequestParameters) -> Single<Data> {
-        let uuid = String(describing: url.absoluteString.hashValue) // NOTE: this is not guaranteed between sessions?
-        guard uuid != "" else {
+        let request = URLRequest(url: url)
+        return data(with: request, options: KBRequestParameters())
+    }
+
+    public func data(with request: URLRequest) -> PrimitiveSequence<SingleTrait, Data> {
+        return data(with: request, options: KBRequestParameters())
+    }
+
+    public func data(with request: URLRequest, options: KBRequestParameters) -> PrimitiveSequence<SingleTrait, Data> {
+        // This is annoyingly long and potentially pointless
+        guard let uuid = request.url?.absoluteString.hashValue.description,
+            uuid != "" else {
             return .error(NSError())
         }
 
@@ -52,7 +66,7 @@ extension KikBank: KikBankType {
         }
 
         // Create a new record and fetch
-        let download = downloadManager.downloadData(with: url)
+        let download = downloadManager.downloadData(with: request)
 
         // Cache on completion
         download
