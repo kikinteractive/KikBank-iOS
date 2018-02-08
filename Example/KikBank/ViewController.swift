@@ -36,7 +36,7 @@ class ViewController: UIViewController {
         let url = URL(string: "https://placekitten.com/g/300/300")!
 
         kikBank
-            .data(with: url, cachePolicy: .disk)
+            .data(with: url, options: KBRequestParameters())
             .map { (data) -> UIImage? in
                 return UIImage(data: data)
             }

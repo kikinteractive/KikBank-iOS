@@ -5,11 +5,15 @@
 [![License](https://img.shields.io/cocoapods/l/KikBank.svg?style=flat)](http://cocoapods.org/pods/KikBank)
 [![Platform](https://img.shields.io/cocoapods/p/KikBank.svg?style=flat)](http://cocoapods.org/pods/KikBank)
 
+## TODO
+
+* Retry logic
+* More cache/timeout policies
+* Cache Versioning
+
 ## Example
 
 To run the example project, clone the repo, and run `pod install` from the Example directory first.
-
-## Requirements
 
 ## Installation
 
