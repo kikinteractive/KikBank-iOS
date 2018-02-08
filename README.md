@@ -7,7 +7,7 @@
 
 ## Use
 
-Currently KikBank offers basic fetch and cache mechanisms, with a few optionson how the data is requested and stored.
+Currently KikBank offers basic fetch and cache mechanisms, with a few options on how the data is requested and stored.
 
 After creating an instance of KikBank...
 
@@ -21,7 +21,7 @@ provide the url the data can be found at, KikBank will return a Single<Data> obs
 let url = URL(string: "https://placekitten.com/g/300/300")!
 let dataObservable = kikBank.data(with: url, options: KBRequestParameters())
 
-// you can now bind this to a UIImageView, etc.
+// you can bind this to a UIImageView, etc.
 dataObservable
     .map { (data) -> UIImage? in
         return UIImage(data: data)
@@ -54,7 +54,7 @@ pod 'KikBank'
 
 ## Author
 
-JamesRagnar, 2214827+JamesRagnar@users.noreply.github.com
+James Harquail, ragnar@kik.com
 
 ## License
 

@@ -10,6 +10,7 @@ import Foundation
 import RxSwift
 
 public protocol KikBankType {
+    func data(with url: URL) -> Single<Data>
     func data(with url: URL, options: KBRequestParameters) -> Single<Data>
 }
 
@@ -33,6 +34,10 @@ public class KikBank {
 }
 
 extension KikBank: KikBankType {
+
+    public func data(with url: URL) -> Single<Data> {
+        return data(with: url, options: KBRequestParameters())
+    }
 
     public func data(with url: URL, options: KBRequestParameters) -> Single<Data> {
         let uuid = String(describing: url.absoluteString.hashValue) // NOTE: this is not guaranteed between sessions?
