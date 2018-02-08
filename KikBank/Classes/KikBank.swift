@@ -18,7 +18,7 @@ public class KikBank {
     private let downloadManager: KBDownloadManagerType
     private let storageManager: KBStorageManagerType
 
-    private lazy var uuidMap = [URL: UUID]()
+    private lazy var uuidMap = [URL: String]()
     private lazy var disposeBag = DisposeBag()
 
     public convenience init() {
@@ -46,7 +46,7 @@ extension KikBank: KikBankType {
         }
 
         // Create a new record
-        let uuid = UUID()
+        let uuid = UUID().uuidString
         uuidMap[url] = uuid
 
         let download = downloadManager.downloadData(with: url)
