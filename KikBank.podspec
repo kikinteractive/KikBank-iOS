@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "KikBank"
-  s.version      = "0.0.4"
+  s.version      = "0.0.5"
   s.summary      = "URL Data fetch and cache framework"
   s.description  = <<-DESC
                    "Kik Bank is a basic URL -> Data fetch and cache framework based around RxSwift"
@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
 
   s.homepage     = "https://github.com/kikinteractive/KikBank-iOS"
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
-  s.author       = { "JamesRagnar" => "ragnar@kik.com" }
+  s.author       = { "James Harquail" => "ragnar@kik.com" }
   s.source       = { :git => "https://github.com/kikinteractive/KikBank-iOS.git", :tag => s.version.to_s }
 
   s.ios.deployment_target = '8.0'
