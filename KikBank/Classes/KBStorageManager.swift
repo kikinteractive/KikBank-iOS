@@ -35,26 +35,28 @@ class KBStorageManager {
     private func fetchContent(with uuid: String) -> Data? {
         // Check in memory cache
         if let asset = memoryCache[uuid]  {
+            print("KBStorageManager - Found memory - \(uuid)")
             return validateAndReturn(asset)
         }
 
         // Check disk
         if let asset = readAssetFomDisk(with: uuid) {
+            print("KBStorageManager - Found disk - \(uuid)")
             return validateAndReturn(asset)
         }
+
+        print("KBStorageManager - No Record - \(uuid)")
 
         // Nothin
         return nil
     }
 
     private func validateAndReturn(_ asset: KBAsset) -> Data? {
-        if let expiryDate = asset.expiryDate {
-            if Date().timeIntervalSince(expiryDate) > 0 {
-                // Asset has passed expiry date, delete it
-                memoryCache[asset.uuid] = nil
-                delete(asset)
-                return nil
-            }
+        if !asset.isValid() {
+            // Asset has become invalid, remove references
+            memoryCache[asset.uuid] = nil
+            delete(asset)
+            return nil
         }
 
         return asset.data
@@ -69,31 +71,38 @@ class KBStorageManager {
     }
 
     private func writeToDisk(_ asset: KBAsset) {
-        guard let fullPath = contentURL?.appendingPathComponent(asset.uuid) else {
+        guard let pathString = contentURL?.appendingPathComponent(asset.uuid).path else {
+            return
+        }
+
+        let fullPath = "file://" + pathString
+
+        guard let pathURL = URL(string: fullPath) else {
             return
         }
 
         do {
             let data = NSKeyedArchiver.archivedData(withRootObject: asset)
-            try data.write(to: fullPath)
+            try data.write(to: pathURL)
         } catch {
-            print("Couldn't write file")
+            print("KBStorageManager - Error writing to disk - \(error)")
         }
     }
 
     private func delete(_ asset: KBAsset) {
-        guard let fullPath = contentURL?.appendingPathComponent(asset.uuid).absoluteString else {
+        guard let pathString = contentURL?.appendingPathComponent(asset.uuid).absoluteString else {
             return
         }
+
+        let fullPath = "file:///" + pathString
 
         if FileManager.default.fileExists(atPath: fullPath) {
             do {
                 try FileManager.default.removeItem(atPath: fullPath)
             } catch {
-                print("Couldn't delete file")
+                print("KBStorageManager - Error deleting file - \(error)")
             }
         }
-
     }
 }
 
@@ -120,7 +129,7 @@ extension KBStorageManager: KBStorageManagerType {
         switch cachePolicy {
         case .disk:
             writeToDisk(asset)
-            fallthrough // Disk items are persisted in memory. good/bad?
+            fallthrough
         case .memory:
             memoryCache[uuid] = asset
         default:

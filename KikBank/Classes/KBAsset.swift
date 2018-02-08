@@ -50,7 +50,7 @@ class KBAsset: NSObject {
 extension KBAsset: NSCoding {
     public func encode(with aCoder: NSCoder) {
         aCoder.encode(uuid, forKey: Constants.uuidKey)
-        aCoder.encode(uuid, forKey: Constants.uuidKey)
-        aCoder.encode(uuid, forKey: Constants.uuidKey)
+        aCoder.encode(data, forKey: Constants.dataKey)
+        aCoder.encode(expiryDate, forKey: Constants.expiryKey)
     }
 }
