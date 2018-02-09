@@ -17,14 +17,14 @@ public protocol KikBankType {
     func data(with request: URLRequest, options: KBRequestParameters) -> Single<Data>
 }
 
-public class KikBank {
+@objc public class KikBank: NSObject {
 
     private lazy var disposeBag = DisposeBag()
 
     private let downloadManager: KBDownloadManagerType
     private let storageManager: KBStorageManagerType
 
-    public convenience init() {
+    @objc public convenience override init() {
         let storageManager = KBStorageManager()
         let downloadManager = KBDownloadManager()
         self.init(storageManager: storageManager, downloadManager: downloadManager)
@@ -33,6 +33,7 @@ public class KikBank {
     public required init(storageManager: KBStorageManagerType, downloadManager: KBDownloadManagerType) {
         self.storageManager = storageManager
         self.downloadManager = downloadManager
+        super.init()
     }
 }
 
