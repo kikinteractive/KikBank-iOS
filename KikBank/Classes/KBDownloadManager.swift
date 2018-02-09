@@ -10,18 +10,32 @@ import Foundation
 import RxSwift
 
 public protocol KBDownloadManagerType {
+    func setMaxConcurrentOperationCount(_ count: Int)
     func downloadData(with request: URLRequest) -> Single<Data>
 }
 
-class KBDownloadManager: KBDownloadManagerType {
+@objc public class KBDownloadManager: NSObject {
+
+    private struct Constants {
+        static let defaultMaxConcurrentOperationCount = 5
+    }
 
     private lazy var downloadQueue: OperationQueue = {
         let queue = OperationQueue()
-        queue.maxConcurrentOperationCount = 5
+        queue.maxConcurrentOperationCount = Constants.defaultMaxConcurrentOperationCount
         return queue
     }()
 
-    func downloadData(with request: URLRequest) -> Single<Data> {
+    private lazy var disposeBag = DisposeBag()
+}
+
+extension KBDownloadManager: KBDownloadManagerType {
+
+    @objc public func setMaxConcurrentOperationCount(_ count: Int) {
+        downloadQueue.maxConcurrentOperationCount = count
+    }
+
+    public func downloadData(with request: URLRequest) -> Single<Data> {
         return Observable<Data>.create({ [weak self] (observable) -> Disposable in
             guard let this = self, let url = request.url else {
                 observable.onError(NSError())
@@ -44,8 +58,19 @@ class KBDownloadManager: KBDownloadManagerType {
 
             return Disposables.create { request.cancel() }
         })
-        .share()
-        .take(1)
-        .asSingle()
+            .share()
+            .take(1)
+            .asSingle()
+    }
+}
+
+extension KBDownloadManager {
+
+    @objc public func downloadData(with request: URLRequest, success: @escaping (Data) -> Void, failure: @escaping (Error) -> Void) {
+        downloadData(with: request).subscribe(onSuccess: { (data) in
+            success(data)
+        }) { (error) in
+            failure(error)
+        }.disposed(by: disposeBag)
     }
 }

@@ -8,12 +8,12 @@
 
 import Foundation
 
-public protocol KBStorageManagerType {
+@objc public protocol KBStorageManagerType {
     func store(_ uuid: String, data: Data, options: KBRequestParameters)
     func fetch(_ uuid: String) -> Data?
 }
 
-class KBStorageManager {
+@objc public class KBStorageManager: NSObject {
 
     private struct Constants {
         static let cachePathExtension = "KikBankStorage"
@@ -102,7 +102,7 @@ class KBStorageManager {
 
 extension KBStorageManager: KBStorageManagerType {
 
-    func store(_ uuid: String, data: Data, options: KBRequestParameters) {
+    public func store(_ uuid: String, data: Data, options: KBRequestParameters) {
         let asset = KBAsset(uuid: uuid, data: data)
         asset.expiryDate = options.expiryDate
 
@@ -119,7 +119,7 @@ extension KBStorageManager: KBStorageManagerType {
         }
     }
 
-    func fetch(_ uuid: String) -> Data? {
+    public func fetch(_ uuid: String) -> Data? {
         return fetchContent(with: uuid)
     }
 }

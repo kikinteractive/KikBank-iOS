@@ -26,7 +26,7 @@
     return self;
 }
 
-- (void)checkObjcBridge
+- (void)checkKikBankBridge
 {
     KBRequestParameters *params = [KBRequestParameters new];
     [params setWritePolicy:KBWritePolicyMemory];
@@ -40,6 +40,28 @@
     } failure:^(NSError * _Nonnull error) {
         NSLog(@"Got error %@", error.localizedDescription);
     }];
+}
+
+- (void)checkDownloadManagerBridge
+{
+    KBDownloadManager *downloadManager = [KBDownloadManager new];
+    [downloadManager setMaxConcurrentOperationCount:1];
+
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"https://placekitten.com/g/300/300"]];
+
+    [downloadManager downloadDataWith:request success:^(NSData * _Nonnull data) {
+        NSLog(@"Got data");
+    } failure:^(NSError * _Nonnull error) {
+        NSLog(@"Got error %@", error.localizedDescription);
+    }];
+}
+
+- (void)checkStorageManagerBridge
+{
+    KBRequestParameters *params = [KBRequestParameters new];
+
+    KBStorageManager *storageManager = [KBStorageManager new];
+    [storageManager store:@"test" data:[NSData new] options:params];
 }
 
 @end
