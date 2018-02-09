@@ -81,14 +81,23 @@ extension KikBank: KikBankType {
     }
 }
 
-public struct KBRequestParameters {
-    var expiryDate: Date?
-    var readPolicy: KBReadPolicy = .cache
-    var writePolicy: KBWritePolicy = .memory
+extension KikBank {
 
-    public init() {
-        
+    @objc public func data(with request: URLRequest, options: KBRequestParameters, success: @escaping (Data) -> Void, failure: @escaping (Error) -> Void) {
+        data(with: request, options: options)
+            .subscribe(onSuccess: { (data) in
+                success(data)
+            }) { (error) in
+                failure(error)
+            }
+            .disposed(by: disposeBag)
     }
+}
+
+@objc public class KBRequestParameters: NSObject {
+    public var expiryDate: Date?
+    public var readPolicy: KBReadPolicy = .cache
+    public var writePolicy: KBWritePolicy = .memory
 }
 
 // Specify how data should be read

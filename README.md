@@ -38,6 +38,7 @@ The KBRequestParameters struct handles the fetch and cache types. By default, it
 * Retry logic
 * More cache/timeout policies
 * Cache Versioning
+* Modify concurrent network request count
 
 ## Example
 

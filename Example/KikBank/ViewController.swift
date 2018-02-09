@@ -35,8 +35,11 @@ class ViewController: UIViewController {
 
         let url = URL(string: "https://placekitten.com/g/300/300")!
 
+        var fetchPolicy = KBRequestParameters()
+        fetchPolicy.readPolicy = .network // Skip cached results
+        
         kikBank
-            .data(with: url, options: KBRequestParameters())
+            .data(with: url, options: fetchPolicy)
             .map { (data) -> UIImage? in
                 return UIImage(data: data)
             }
