@@ -10,10 +10,21 @@ import Foundation
 import RxSwift
 
 public protocol KBDownloadManagerType {
+
+    /// Modify the current concurrent operation count
+    ///
+    /// - Parameter count: The new concurrent operation count
     func setMaxConcurrentOperationCount(_ count: Int)
+
+
+    /// Get a Single Observable for the requested data download
+    ///
+    /// - Parameter request: The URLRequest of the desired data
+    /// - Returns: A Single Observable of the pending data download
     func downloadData(with request: URLRequest) -> Single<Data>
 }
 
+/// Download manager which wraps an asynchronous operation queue and provides a Single<Data> type
 @objc public class KBDownloadManager: NSObject {
 
     private struct Constants {

@@ -6,6 +6,9 @@
 //  Copyright © 2018 CocoaPods. All rights reserved.
 //
 
+/*
+ *  This is just to make sure that I'm bridging to objc correctly
+ */
 #import <Foundation/Foundation.h>
 #import <KikBank/KikBank-Swift.h>
 
@@ -26,13 +29,17 @@
     return self;
 }
 
-- (void)checkKikBankBridge
+- (void)checkParams
 {
-    KBRequestParameters *params = [KBRequestParameters new];
+    KBParameters *params = [KBParameters new];
     [params setWritePolicy:KBWritePolicyMemory];
     [params setReadPolicy:KBReadPolicyCache];
     [params setExpiryDate:NULL];
+}
 
+- (void)checkKikBankBridge
+{
+    KBParameters *params = [KBParameters new];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"https://placekitten.com/g/300/300"]];
 
     [_kikBank dataWith:request options:params success:^(NSData * _Nonnull data) {
@@ -58,7 +65,7 @@
 
 - (void)checkStorageManagerBridge
 {
-    KBRequestParameters *params = [KBRequestParameters new];
+    KBParameters *params = [KBParameters new];
 
     KBStorageManager *storageManager = [KBStorageManager new];
     [storageManager store:@"test" data:[NSData new] options:params];

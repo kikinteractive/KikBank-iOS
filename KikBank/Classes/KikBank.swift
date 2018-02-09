@@ -10,11 +10,35 @@ import Foundation
 import RxSwift
 
 public protocol KikBankType {
-    func data(with url: URL) -> Single<Data>
-    func data(with url: URL, options: KBRequestParameters) -> Single<Data>
 
+    /// Get data available at the provided URL
+    ///
+    /// - Parameter url: The URL of the data
+    /// - Returns: A Single Observable of the data fetch operation
+    func data(with url: URL) -> Single<Data>
+
+    /// Get data available at the provided URL
+    ///
+    /// - Parameters:
+    ///   - url: The URL of the data
+    ///   - options: The fetch policies of the requested data
+    /// - Returns: A Single Observable of the data fetch operation
+    func data(with url: URL, options: KBParameters) -> Single<Data>
+
+    /// Get data available at the provided URLRequest
+    ///
+    /// - Parameter request: The URLRequest of the requested data
+    /// - Returns: A Single Observable of the data fetch operation
     func data(with request: URLRequest) -> Single<Data>
-    func data(with request: URLRequest, options: KBRequestParameters) -> Single<Data>
+
+
+    /// Get data available at the provided URLRequest
+    ///
+    /// - Parameters:
+    ///   - request: The URLRequest of the requested data
+    ///   - options: The fetch policies of the requested data
+    /// - Returns: A Single Observable of the data fetch operation
+    func data(with request: URLRequest, options: KBParameters) -> Single<Data>
 }
 
 @objc public class KikBank: NSObject {
@@ -41,19 +65,19 @@ extension KikBank: KikBankType {
 
     public func data(with url: URL) -> Single<Data> {
         let request = URLRequest(url: url)
-        return data(with: request, options: KBRequestParameters())
+        return data(with: request, options: KBParameters())
     }
 
-    public func data(with url: URL, options: KBRequestParameters) -> Single<Data> {
+    public func data(with url: URL, options: KBParameters) -> Single<Data> {
         let request = URLRequest(url: url)
-        return data(with: request, options: KBRequestParameters())
+        return data(with: request, options: KBParameters())
     }
 
     public func data(with request: URLRequest) -> PrimitiveSequence<SingleTrait, Data> {
-        return data(with: request, options: KBRequestParameters())
+        return data(with: request, options: KBParameters())
     }
 
-    public func data(with request: URLRequest, options: KBRequestParameters) -> PrimitiveSequence<SingleTrait, Data> {
+    public func data(with request: URLRequest, options: KBParameters) -> PrimitiveSequence<SingleTrait, Data> {
         // This is annoyingly long and potentially pointless
         guard let uuid = request.url?.absoluteString.hashValue.description,
             uuid != "" else {
@@ -84,7 +108,7 @@ extension KikBank: KikBankType {
 
 extension KikBank {
 
-    @objc public func data(with request: URLRequest, options: KBRequestParameters, success: @escaping (Data) -> Void, failure: @escaping (Error) -> Void) {
+    @objc public func data(with request: URLRequest, options: KBParameters, success: @escaping (Data) -> Void, failure: @escaping (Error) -> Void) {
         data(with: request, options: options)
             .subscribe(onSuccess: { (data) in
                 success(data)
@@ -93,23 +117,4 @@ extension KikBank {
             }
             .disposed(by: disposeBag)
     }
-}
-
-@objc public class KBRequestParameters: NSObject {
-    @objc public var expiryDate: Date?
-    @objc public var readPolicy: KBReadPolicy = .cache
-    @objc public var writePolicy: KBWritePolicy = .memory
-}
-
-// Specify how data should be read
-@objc public enum KBReadPolicy: Int {
-    case cache // Check the local storage for a copy first
-    case network // Force a network fetch
-}
-
-// Specify how the data should be saved
-@objc public enum KBWritePolicy: Int {
-    case none // Don't save anything
-    case memory // Write only to memory
-    case disk // Write to device
 }

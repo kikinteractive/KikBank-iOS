@@ -35,7 +35,7 @@ class ViewController: UIViewController {
 
         let url = URL(string: "https://placekitten.com/g/300/300")!
 
-        let fetchPolicy = KBRequestParameters()
+        let fetchPolicy = KBParameters()
         fetchPolicy.readPolicy = .network // Skip cached results
         
         kikBank

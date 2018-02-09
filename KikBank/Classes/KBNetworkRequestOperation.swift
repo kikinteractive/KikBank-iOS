@@ -8,14 +8,21 @@
 
 import Foundation
 
+/// Subclass of KBAsyncOperation providing an async network request operation
 class KBNetworkRequestOperation: KBAsyncOperation {
 
     typealias RequestResult = (data: Data?, response: URLResponse?, error: Error?)
 
+    /// The URLRequest to be run
     private let request: URLRequest
+
+    /// Convenience accessor for URLSession
     private let session: URLSession = .shared
+
+    /// Reference to potentially running network data task
     private var dataTask: URLSessionDataTask?
 
+    /// The network request result, should be access in the operation completion block
     public var result: RequestResult?
 
     convenience init(url: URL) {

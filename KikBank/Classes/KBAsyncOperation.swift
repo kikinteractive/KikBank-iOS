@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// Provides locks on asynchronous operations
 class KBAsyncOperation: Operation {
 
     internal var _executing = false {
