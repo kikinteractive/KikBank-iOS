@@ -96,19 +96,19 @@ extension KikBank {
 }
 
 @objc public class KBRequestParameters: NSObject {
-    public var expiryDate: Date?
-    public var readPolicy: KBReadPolicy = .cache
-    public var writePolicy: KBWritePolicy = .memory
+    @objc public var expiryDate: Date?
+    @objc public var readPolicy: KBReadPolicy = .cache
+    @objc public var writePolicy: KBWritePolicy = .memory
 }
 
 // Specify how data should be read
-public enum KBReadPolicy {
+@objc public enum KBReadPolicy: Int {
     case cache // Check the local storage for a copy first
     case network // Force a network fetch
 }
 
 // Specify how the data should be saved
-public enum KBWritePolicy {
+@objc public enum KBWritePolicy: Int {
     case none // Don't save anything
     case memory // Write only to memory
     case disk // Write to device
