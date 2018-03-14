@@ -70,7 +70,7 @@ extension KikBank: KikBankType {
 
     public func data(with url: URL, options: KBParameters) -> Single<Data> {
         let request = URLRequest(url: url)
-        return data(with: request, options: KBParameters())
+        return data(with: request, options: options)
     }
 
     public func data(with request: URLRequest) -> PrimitiveSequence<SingleTrait, Data> {
@@ -78,10 +78,11 @@ extension KikBank: KikBankType {
     }
 
     public func data(with request: URLRequest, options: KBParameters) -> PrimitiveSequence<SingleTrait, Data> {
-        // This is annoyingly long and potentially pointless
-        guard let uuid = request.url?.absoluteString.hashValue.description,
-            uuid != "" else {
-            return .error(NSError())
+        guard
+            let uuid = request.url?.absoluteString.hashValue.description,
+            uuid != ""
+            else {
+                return .error(NSError())
         }
 
         // Check if there is an existing record
