@@ -68,7 +68,10 @@
     KBParameters *params = [KBParameters new];
 
     KBStorageManager *storageManager = [KBStorageManager new];
-    [storageManager store:@"test" data:[NSData new] options:params];
+    
+    KBAsset *asset = [[KBAsset alloc] initWithUuid: @"test" data: [NSData new]];
+    
+    [storageManager store:@"test" expirableEntity:asset options:params];
 }
 
 @end
