@@ -13,51 +13,47 @@ import Foundation
     /// Store the provded data based on provided storage policy
     ///
     /// - Parameters:
-    ///   - key: The unique identifier of the expirableEntity
-    ///   - expirableEntity: The expirableEntity to be stored
-    ///   - options: The write policy of the expirableEntity
-    func store(_ key: String, expirableEntity: ExpirableEntityType, options: KBParameters)
+    ///   - key: The unique identifier of the asset
+    ///   - asset: The asset to be stored
+    ///   - options: The write policy of the asset
+    func store(_ key: String, asset: KBAssetType, options: KBParameters)
 
     /// Get any valid data defined by the provided uuid
     ///
-    /// - Parameter key: The unique identifier of the expirableEntity
-    /// - Returns: Valid expirableEntity, if possible
-    func fetch(_ key: String) -> ExpirableEntityType?
+    /// - Parameter key: The unique identifier of the asset
+    /// - Returns: Valid asset, if possible
+    func fetch(_ key: String) -> KBAssetType?
 }
 
 /// Storage manager provides simple caching and disk storage solutions
 @objc public class KBStorageManager: NSObject {
 
-    var cachePathExtension: String {
-        get {
-            return self.cachePathExtension
-        }
-        
-        set {
-            self.cachePathExtension = "/" + newValue
-        }
-    }
+    var cachePathExtension: String
 
-    /// The in memory expirableEntity cache
-    private lazy var memoryCache = [String: ExpirableEntityType]()
+    /// The in memory asset cache
+    private lazy var memoryCache = [String: KBAssetType]()
 
     /// Convenience accessor of the disk file location
     private lazy var contentURL: URL? = {
         let fileManager = FileManager.default
 
         do {
-            let documentsPath = try fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+            let documentsPath = try fileManager.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
             return documentsPath.appendingPathComponent(self.cachePathExtension)
         } catch {
             return nil
         }
     }()
+    
+    @objc public init(pathExtension: String) {
+        cachePathExtension = pathExtension
+    }
 
-    /// Checks for a stored expirableEntity matching the povided uuid
+    /// Checks for a stored asset matching the povided uuid
     ///
-    /// - Parameter uuid: The unique identifier of the expirableEntity
-    /// - Returns: Valid expirableEntity, if possible
-    private func fetchContent(with key: String) -> ExpirableEntityType? {
+    /// - Parameter uuid: The unique identifier of the asset
+    /// - Returns: Valid asset, if possible
+    private func fetchContent(with key: String) -> KBAssetType? {
         // Check in memory cache
         if let asset = memoryCache[key]  {
             print("KBStorageManager - Found memory - \(key)")
@@ -76,15 +72,15 @@ import Foundation
         return nil
     }
 
-    /// Check if the provided asset has passed validation checks and should return expirableEntity
+    /// Check if the provided asset has passed validation checks and should return asset
     ///
     /// - Parameter asset: The asset to check for validity
-    /// - Returns: expirableEntity if it is valid
-    private func validateAndReturn(_ expirableEntity: ExpirableEntityType) -> ExpirableEntityType? {
-        if !expirableEntity.isValid {
+    /// - Returns: asset if it is valid
+    private func validateAndReturn(_ asset: KBAssetType) -> KBAssetType? {
+        if !asset.isValid {
             // Asset has become invalid, remove references
-            memoryCache[expirableEntity.key] = nil
-            delete(expirableEntity)
+            memoryCache[asset.key] = nil
+            delete(asset)
             return nil
         }
 
@@ -95,26 +91,26 @@ import Foundation
     ///
     /// - Parameter uuid: The unique identifier of the data
     /// - Returns: An asset matching the provided uuid, if one exists
-    private func readAssetFomDisk(with key: String) -> ExpirableEntityType? {
+    private func readAssetFomDisk(with key: String) -> KBAssetType? {
         guard let pathURL = contentURL?.appendingPathExtension(key) else {
             return nil
         }
 
-        return NSKeyedUnarchiver.unarchiveObject(withFile: pathURL.path) as? ExpirableEntityType
+        return NSKeyedUnarchiver.unarchiveObject(withFile: pathURL.path) as? KBAssetType
     }
 
     /// Write the provided asset to disk
     ///
-    /// - Parameter asset: The expirableEntity to be written to disk
-    private func writeToDisk(_ expirableEntity: ExpirableEntityType) {
-        guard let pathURL = contentURL?.appendingPathExtension(expirableEntity.key) else {
+    /// - Parameter asset: The asset to be written to disk
+    private func writeToDisk(_ asset: KBAssetType) {
+        guard let pathURL = contentURL?.appendingPathExtension(asset.key) else {
             return
         }
 
         do {
-            let data = NSKeyedArchiver.archivedData(withRootObject: expirableEntity)
+            let data = NSKeyedArchiver.archivedData(withRootObject: asset)
             try data.write(to: pathURL, options: .atomic)
-            print("KBStorageManager - Writing Record to Disk - \(expirableEntity.key)")
+            print("KBStorageManager - Writing Record to Disk - \(asset.key)")
         } catch {
             print("KBStorageManager - Error Writing Record to Disk - \(error)")
         }
@@ -123,40 +119,40 @@ import Foundation
     /// Deletes the provided asset
     ///
     /// - Parameter asset: The asset to be removed from disk
-    private func delete(_ expirableEntity: ExpirableEntityType) {
-        guard let pathURL = contentURL?.appendingPathExtension(expirableEntity.key) else {
+    private func delete(_ asset: KBAssetType) {
+        guard let pathURL = contentURL?.appendingPathExtension(asset.key) else {
             return
         }
 
         if FileManager.default.fileExists(atPath: pathURL.path) {
             do {
                 try FileManager.default.removeItem(at: pathURL)
-                print("KBStorageManager - Deleting Record - \(expirableEntity.key)")
+                print("KBStorageManager - Deleting Record - \(asset.key)")
             } catch {
-                print("KBStorageManager - Error Deleting Record - \(expirableEntity.key)")
+                print("KBStorageManager - Error Deleting Record - \(asset.key)")
             }
         }
     }
 }
 
 extension KBStorageManager: KBStorageManagerType {
-    public func store(_ key: String, expirableEntity: ExpirableEntityType, options: KBParameters) {
-        expirableEntity.expiryDate = options.expiryDate
+    public func store(_ key: String, asset: KBAssetType, options: KBParameters) {
+        asset.expiryDate = options.expiryDate
         
         switch options.writePolicy {
         case .disk:
-            print("KBStorageManager - Writing to Disk - \(expirableEntity.key)")
-            writeToDisk(expirableEntity)
+            print("KBStorageManager - Writing to Disk - \(asset.key)")
+            writeToDisk(asset)
             fallthrough // Disk items are included in memory (for now?)
         case .memory:
-            print("KBStorageManager - Writing to Memory - \(expirableEntity.key)")
-            memoryCache[expirableEntity.key] = expirableEntity
+            print("KBStorageManager - Writing to Memory - \(asset.key)")
+            memoryCache[asset.key] = asset
         default:
             break
         }
     }
 
-    public func fetch(_ key: String) -> ExpirableEntityType? {
+    public func fetch(_ key: String) -> KBAssetType? {
         return fetchContent(with: key)
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 /// Cached and saved object which tracks data validity
-@objc public class KBAsset: NSObject, ExpirableEntityType {
+@objc public class KBAsset: NSObject, KBAssetType {
     private struct Constants {
         static let uuidKey = "kbuuid"
         static let dataKey = "kbdata"
