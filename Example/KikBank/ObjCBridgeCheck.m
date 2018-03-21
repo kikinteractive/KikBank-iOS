@@ -67,8 +67,11 @@
 {
     KBParameters *params = [KBParameters new];
 
-    KBStorageManager *storageManager = [KBStorageManager new];
-    [storageManager store:@"test" data:[NSData new] options:params];
+    KBStorageManager *storageManager = [[KBStorageManager alloc] initWithPathExtension:@"testStorage"];
+    
+    KBAsset *asset = [[KBAsset alloc] initWithUuid: @"test" data: [NSData new]];
+    
+    [storageManager store:@"test" asset:asset options:params];
 }
 
 @end

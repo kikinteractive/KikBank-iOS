@@ -14,7 +14,7 @@ class KBAssetTests: XCTestCase {
 
     func testExpiryNoDate() {
         let asset = KBAsset(uuid: "1", data: Data())
-        XCTAssertTrue(asset.isValid())
+        XCTAssertTrue(asset.isValid)
     }
 
     func testExpiryHistoricDate() {
@@ -22,7 +22,7 @@ class KBAssetTests: XCTestCase {
         let historicDate = Date(timeIntervalSinceNow: -3600)
         asset.expiryDate = historicDate
         XCTAssertLessThan(historicDate.timeIntervalSince1970, Date().timeIntervalSince1970)
-        XCTAssertFalse(asset.isValid())
+        XCTAssertFalse(asset.isValid)
     }
 
     func testExpiryFutureDate() {
@@ -30,6 +30,6 @@ class KBAssetTests: XCTestCase {
         let futureDate = Date(timeIntervalSinceNow: 3600)
         asset.expiryDate = futureDate
         XCTAssertGreaterThan(futureDate.timeIntervalSince1970, Date().timeIntervalSince1970)
-        XCTAssertTrue(asset.isValid())
+        XCTAssertTrue(asset.isValid)
     }
 }

@@ -42,14 +42,17 @@ public protocol KikBankType {
 }
 
 @objc public class KikBank: NSObject {
-
+    private struct Constants {
+        static let pathExtension = "KBStorage"
+    }
+    
     private lazy var disposeBag = DisposeBag()
 
     private let downloadManager: KBDownloadManagerType
     private let storageManager: KBStorageManagerType
 
     @objc public convenience override init() {
-        let storageManager = KBStorageManager()
+        let storageManager = KBStorageManager(pathExtension: Constants.pathExtension)
         let downloadManager = KBDownloadManager()
         self.init(storageManager: storageManager, downloadManager: downloadManager)
     }
@@ -87,8 +90,8 @@ extension KikBank: KikBankType {
 
         // Check if there is an existing record
         if options.readPolicy == .cache,
-            let data = storageManager.fetch(uuid) {
-            return .just(data)
+            let asset = storageManager.fetch(uuid) as? KBAsset {
+            return .just(asset.data)
         }
 
         // Create a new record and fetch
@@ -97,7 +100,7 @@ extension KikBank: KikBankType {
         // Cache on completion
         download
             .subscribe(onSuccess: { [weak self] (data) in
-                self?.storageManager.store(uuid, data: data, options: options)
+                self?.storageManager.store(uuid, asset: KBAsset(uuid: uuid, data: data), options: options)
                 }, onError: { (error) in
                     print("KikBank - \(error)")
             })
