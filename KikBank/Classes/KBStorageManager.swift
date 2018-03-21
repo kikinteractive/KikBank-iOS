@@ -13,15 +13,15 @@ import Foundation
     /// Store the provded data based on provided storage policy
     ///
     /// - Parameters:
-    ///   - uuid: The unique identifier of the data
-    ///   - data: The data to be stored
-    ///   - options: The write policy of the data
+    ///   - key: The unique identifier of the expirableEntity
+    ///   - expirableEntity: The expirableEntity to be stored
+    ///   - options: The write policy of the expirableEntity
     func store(_ key: String, expirableEntity: ExpirableEntityType, options: KBParameters)
 
     /// Get any valid data defined by the provided uuid
     ///
-    /// - Parameter uuid: The unique identifier of the data
-    /// - Returns: Valid data from a matching asset, if possible
+    /// - Parameter key: The unique identifier of the expirableEntity
+    /// - Returns: Valid expirableEntity, if possible
     func fetch(_ key: String) -> ExpirableEntityType?
 }
 
