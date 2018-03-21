@@ -85,7 +85,7 @@ import Foundation
             return nil
         }
 
-        return nil
+        return asset
     }
 
     /// Reads an asset defined by a uuid from disk if available
