@@ -47,6 +47,7 @@ import Foundation
     
     @objc public init(pathExtension: String) {
         cachePathExtension = pathExtension
+        super.init()
     }
 
     /// Checks for a stored asset matching the povided uuid
