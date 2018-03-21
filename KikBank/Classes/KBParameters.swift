@@ -30,7 +30,7 @@ import Foundation
 
 /// Specify how data should be fetched and saved
 @objc public class KBParameters: NSObject {
-    /// The date after which the cached data is considered invalid
+    /// The interval which the cached data is considered valid
     @objc public var expiryDate: Date?
 
     /// The data read type

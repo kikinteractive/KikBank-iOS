@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+@objc public protocol ExpirableEntityType {
+    var key: String { get set }
+    var expiryDate: Date? { get set }
+    var isValid: Bool { get }
+}
