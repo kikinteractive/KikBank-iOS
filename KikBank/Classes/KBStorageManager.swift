@@ -23,6 +23,16 @@ import Foundation
     /// - Parameter key: The unique identifier of the asset
     /// - Returns: Valid asset, if possible
     func fetch(_ key: String) -> KBAssetType?
+
+    /// Reset the in memory storage
+    ///
+    func clearMemoryStorage() -> Void
+
+    /// Resets the storage
+    /// Caution! This removes all stored content at the current content path
+    /// The storage manager may be using a shared resoure location
+    ///
+    func clearDiskStorage() -> Void
 }
 
 /// Storage manager provides simple caching and disk storage solutions
@@ -38,7 +48,10 @@ import Foundation
         let fileManager = FileManager.default
 
         do {
-            let documentsPath = try fileManager.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+            let documentsPath = try fileManager.url(for: .cachesDirectory,
+                                                    in: .userDomainMask,
+                                                    appropriateFor: nil,
+                                                    create: false)
             return documentsPath.appendingPathComponent(self.cachePathExtension)
         } catch {
             return nil
@@ -137,6 +150,7 @@ import Foundation
 }
 
 extension KBStorageManager: KBStorageManagerType {
+    
     public func store(_ key: String, asset: KBAssetType, options: KBParameters) {
         asset.expiryDate = options.expiryDate
         
@@ -155,5 +169,23 @@ extension KBStorageManager: KBStorageManagerType {
 
     public func fetch(_ key: String) -> KBAssetType? {
         return fetchContent(with: key)
+    }
+
+    public func clearMemoryStorage() -> Void {
+        memoryCache = [String: KBAssetType]()
+        print("KBStorageManager - Cleared memory storage")
+    }
+
+    public func clearDiskStorage() -> Void {
+        guard let pathURL = contentURL else {
+            return
+        }
+
+        do {
+            try FileManager.default.removeItem(at: pathURL)
+            print("KBStorageManager - Cleared disk storage")
+        } catch {
+            print("KBStorageManager - Error clearing disk storage")
+        }
     }
 }

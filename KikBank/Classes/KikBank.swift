@@ -39,6 +39,14 @@ public protocol KikBankType {
     ///   - options: The fetch policies of the requested data
     /// - Returns: A Single Observable of the data fetch operation
     func data(with request: URLRequest, options: KBParameters) -> Single<Data>
+
+    /// The bank request manager
+    ///
+    var downloadManager: KBDownloadManagerType { get }
+
+    /// The bank storage manager
+    ///
+    var storageManager: KBStorageManagerType { get }
 }
 
 @objc public class KikBank: NSObject {
@@ -48,8 +56,8 @@ public protocol KikBankType {
     
     private lazy var disposeBag = DisposeBag()
 
-    private let downloadManager: KBDownloadManagerType
-    private let storageManager: KBStorageManagerType
+    public let downloadManager: KBDownloadManagerType
+    public let storageManager: KBStorageManagerType
 
     @objc public convenience override init() {
         let storageManager = KBStorageManager(pathExtension: Constants.pathExtension)
