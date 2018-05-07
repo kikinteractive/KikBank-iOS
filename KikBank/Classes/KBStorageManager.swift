@@ -7,8 +7,9 @@
 //
 
 import Foundation
+import RxSwift
 
-@objc public protocol KBStorageManagerType {
+public protocol KBStorageManagerType {
 
     /// Store the provded data based on provided storage policy
     ///
@@ -16,7 +17,7 @@ import Foundation
     ///   - key: The unique identifier of the asset
     ///   - asset: The asset to be stored
     ///   - options: The write policy of the asset
-    func store(_ key: String, asset: KBAssetType, options: KBParameters)
+    func store(_ key: String, asset: KBAssetType, options: KBParameters) -> Completable
 
     /// Get any valid data defined by the provided uuid
     ///
@@ -26,22 +27,29 @@ import Foundation
 
     /// Reset the in memory storage
     ///
-    func clearMemoryStorage() -> Void
+    func clearMemoryStorage() -> Completable
 
     /// Resets the storage
     /// Caution! This removes all stored content at the current content path
     /// The storage manager may be using a shared resoure location
     ///
-    func clearDiskStorage() -> Void
+    func clearDiskStorage() -> Completable
+
+    /// The static logger
+    ///
+    var logger: KBStaticLoggerType.Type { get set }
 }
 
 /// Storage manager provides simple caching and disk storage solutions
-@objc public class KBStorageManager: NSObject {
+public class KBStorageManager {
 
-    var cachePathExtension: String
+    /// Custom path for content storage
+    private let cachePathExtension: String
 
     /// The in memory asset cache
     private lazy var memoryCache = [String: KBAssetType]()
+
+    public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
 
     /// Convenience accessor of the disk file location
     private lazy var contentURL: URL? = {
@@ -58,9 +66,8 @@ import Foundation
         }
     }()
     
-    @objc public init(pathExtension: String) {
+    public required init(pathExtension: String) {
         cachePathExtension = pathExtension
-        super.init()
     }
 
     /// Checks for a stored asset matching the povided uuid
@@ -151,7 +158,7 @@ import Foundation
 
 extension KBStorageManager: KBStorageManagerType {
     
-    public func store(_ key: String, asset: KBAssetType, options: KBParameters) {
+    public func store(_ key: String, asset: KBAssetType, options: KBParameters) -> Completable {
         asset.expiryDate = options.expiryDate
         
         switch options.writePolicy {
@@ -165,20 +172,24 @@ extension KBStorageManager: KBStorageManagerType {
         default:
             break
         }
+
+        return Completable.empty()
     }
 
     public func fetch(_ key: String) -> KBAssetType? {
         return fetchContent(with: key)
     }
 
-    public func clearMemoryStorage() -> Void {
+    public func clearMemoryStorage() -> Completable {
         memoryCache = [String: KBAssetType]()
         print("KBStorageManager - Cleared memory storage")
+
+        return Completable.empty()
     }
 
-    public func clearDiskStorage() -> Void {
+    public func clearDiskStorage() -> Completable {
         guard let pathURL = contentURL else {
-            return
+            return Completable.error(NSError())
         }
 
         do {
@@ -187,5 +198,7 @@ extension KBStorageManager: KBStorageManagerType {
         } catch {
             print("KBStorageManager - Error clearing disk storage")
         }
+
+        return Completable.empty()
     }
 }

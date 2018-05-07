@@ -47,19 +47,31 @@ public protocol KikBankType {
     /// The bank storage manager
     ///
     var storageManager: KBStorageManagerType { get }
+
+    /// The static logger
+    ///
+    var logger: KBStaticLoggerType.Type { get set }
 }
 
-@objc public class KikBank: NSObject {
+public class KikBank {
+
     private struct Constants {
         static let pathExtension = "KBStorage"
     }
     
     private lazy var disposeBag = DisposeBag()
 
-    public let downloadManager: KBDownloadManagerType
-    public let storageManager: KBStorageManagerType
+    public var downloadManager: KBDownloadManagerType
+    public var storageManager: KBStorageManagerType
 
-    @objc public convenience override init() {
+    public var logger: KBStaticLoggerType.Type = KBStaticLogger.self {
+        didSet {
+            downloadManager.logger = logger
+            storageManager.logger = logger
+        }
+    }
+
+    public convenience init() {
         let storageManager = KBStorageManager(pathExtension: Constants.pathExtension)
         let downloadManager = KBDownloadManager()
         self.init(storageManager: storageManager, downloadManager: downloadManager)
@@ -68,7 +80,6 @@ public protocol KikBankType {
     public required init(storageManager: KBStorageManagerType, downloadManager: KBDownloadManagerType) {
         self.storageManager = storageManager
         self.downloadManager = downloadManager
-        super.init()
     }
 }
 

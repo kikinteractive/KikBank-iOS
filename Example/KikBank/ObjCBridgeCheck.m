@@ -14,64 +14,8 @@
 
 @interface ObjCBridgeCheck: NSObject
 
-@property (nonatomic, strong) KikBank *kikBank;
-
 @end
 
 @implementation ObjCBridgeCheck
-
-- (id)init
-{
-    self = [super init];
-    if (self) {
-        _kikBank = [KikBank new];
-    }
-    return self;
-}
-
-- (void)checkParams
-{
-    KBParameters *params = [KBParameters new];
-    [params setWritePolicy:KBWritePolicyMemory];
-    [params setReadPolicy:KBReadPolicyCache];
-    [params setExpiryDate:NULL];
-}
-
-- (void)checkKikBankBridge
-{
-    KBParameters *params = [KBParameters new];
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"https://placekitten.com/g/300/300"]];
-
-    [_kikBank dataWith:request options:params success:^(NSData * _Nonnull data) {
-        NSLog(@"Got data");
-    } failure:^(NSError * _Nonnull error) {
-        NSLog(@"Got error %@", error.localizedDescription);
-    }];
-}
-
-- (void)checkDownloadManagerBridge
-{
-    KBDownloadManager *downloadManager = [KBDownloadManager new];
-    [downloadManager setMaxConcurrentOperationCount:1];
-
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"https://placekitten.com/g/300/300"]];
-
-    [downloadManager downloadDataWith:request success:^(NSData * _Nonnull data) {
-        NSLog(@"Got data");
-    } failure:^(NSError * _Nonnull error) {
-        NSLog(@"Got error %@", error.localizedDescription);
-    }];
-}
-
-- (void)checkStorageManagerBridge
-{
-    KBParameters *params = [KBParameters new];
-
-    KBStorageManager *storageManager = [[KBStorageManager alloc] initWithPathExtension:@"testStorage"];
-    
-    KBAsset *asset = [[KBAsset alloc] initWithUuid: @"test" data: [NSData new]];
-    
-    [storageManager store:@"test" asset:asset options:params];
-}
 
 @end

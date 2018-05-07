@@ -22,14 +22,20 @@ public protocol KBDownloadManagerType {
     /// - Parameter request: The URLRequest of the desired data
     /// - Returns: A Single Observable of the pending data download
     func downloadData(with request: URLRequest) -> Single<Data>
+
+    /// The static logger
+    ///
+    var logger: KBStaticLoggerType.Type { get set }
 }
 
 /// Download manager which wraps an asynchronous operation queue and provides a Single<Data> type
-@objc public class KBDownloadManager: NSObject {
+public class KBDownloadManager: NSObject {
 
     private struct Constants {
         static let defaultMaxConcurrentOperationCount = 5
     }
+
+    public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
 
     private lazy var downloadQueue: OperationQueue = {
         let queue = OperationQueue()
