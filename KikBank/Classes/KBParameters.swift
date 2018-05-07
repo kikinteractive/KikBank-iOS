@@ -13,7 +13,7 @@ import Foundation
  - cache: Check storage for a copy before making a new request
  - network: Ignore local storage forcing a network request
  */
-@objc public enum KBReadPolicy: Int {
+public enum KBReadPolicy: Int {
     case cache, network
 }
 
@@ -24,18 +24,18 @@ import Foundation
  - memory: Persit item in memory, lost on storage dealloc
  - disk: Write to disk, fetched on next alloc
  */
-@objc public enum KBWritePolicy: Int {
+public enum KBWritePolicy: Int {
     case none, memory, disk
 }
 
 /// Specify how data should be fetched and saved
-@objc public class KBParameters: NSObject {
+public class KBParameters: NSObject {
     /// The date after which the cached data is considered invalid
-    @objc public var expiryDate: Date?
+    public var expiryDate: Date?
 
     /// The data read type
-    @objc public var readPolicy: KBReadPolicy = .cache
+    public var readPolicy: KBReadPolicy = .cache
 
     // The data write type
-    @objc public var writePolicy: KBWritePolicy = .memory
+    public var writePolicy: KBWritePolicy = .memory
 }

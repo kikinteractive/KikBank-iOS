@@ -8,7 +8,8 @@
 import Foundation
 
 /// Cached and saved object which tracks data validity
-@objc public class KBAsset: NSObject, KBAssetType {
+public class KBAsset: NSObject, KBAssetType {
+
     private struct Constants {
         static let uuidKey = "kbuuid"
         static let dataKey = "kbdata"
@@ -24,7 +25,7 @@ import Foundation
     /// The date at which to invalidate the stored data
     public var expiryDate: Date?
 
-    @objc public init(uuid: String, data: Data) {
+    public init(uuid: String, data: Data) {
         self.key = uuid
         self.data = data
         super.init()
@@ -57,6 +58,7 @@ import Foundation
 }
 
 extension KBAsset: NSCoding {
+    
     public func encode(with aCoder: NSCoder) {
         aCoder.encode(key, forKey: Constants.uuidKey)
         aCoder.encode(data, forKey: Constants.dataKey)

@@ -7,6 +7,6 @@
 
 import Foundation
 
-@objc public protocol KBAssetType: KBExpirableEntityType {
+public protocol KBAssetType {
     var key: String { get }
 }

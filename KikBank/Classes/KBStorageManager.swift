@@ -98,11 +98,13 @@ public class KBStorageManager {
     /// - Parameter asset: The asset to check for validity
     /// - Returns: asset if it is valid
     private func validateAndReturn(_ asset: KBAssetType) -> KBAssetType? {
-        if !asset.isValid {
-            // Asset has become invalid, remove references
-            memoryCache[asset.key] = nil
-            delete(asset)
-            return nil
+        if let asset = asset as? KBExpirableEntityType {
+            if !asset.isValid {
+                // Asset has become invalid, remove references
+                memoryCache[asset.key] = nil
+                delete(asset)
+                return nil
+            }
         }
 
         return asset
@@ -159,8 +161,10 @@ public class KBStorageManager {
 extension KBStorageManager: KBStorageManagerType {
     
     public func store(_ key: String, asset: KBAssetType, options: KBParameters) -> Completable {
-        asset.expiryDate = options.expiryDate
-        
+        if var asset = asset as? KBExpirableEntityType {
+            asset.expiryDate = options.expiryDate
+        }
+
         switch options.writePolicy {
         case .disk:
             print("KBStorageManager - Writing to Disk - \(asset.key)")
