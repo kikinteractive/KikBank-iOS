@@ -95,11 +95,11 @@ extension KikBank: KikBankType {
         return data(with: request, options: options)
     }
 
-    public func data(with request: URLRequest) -> PrimitiveSequence<SingleTrait, Data> {
+    public func data(with request: URLRequest) -> Single<Data> {
         return data(with: request, options: KBParameters())
     }
 
-    public func data(with request: URLRequest, options: KBParameters) -> PrimitiveSequence<SingleTrait, Data> {
+    public func data(with request: URLRequest, options: KBParameters) -> Single<Data> {
         guard
             let uuid = request.url?.absoluteString.hashValue.description,
             uuid != ""
@@ -119,9 +119,9 @@ extension KikBank: KikBankType {
         // Cache on completion
         download
             .subscribe(onSuccess: { [weak self] (data) in
-                self?.storageManager.store(uuid, asset: KBAsset(uuid: uuid, data: data), options: options)
-                }, onError: { (error) in
-                    print("KikBank - \(error)")
+                _ = self?.storageManager.store(uuid, asset: KBAsset(uuid: uuid, data: data), options: options)
+                }, onError: { [weak self] (error) in
+                    self?.logger.log(error: "KikBank - \(error)")
             })
             .disposed(by: disposeBag)
 

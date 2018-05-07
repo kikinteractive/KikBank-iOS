@@ -77,17 +77,17 @@ public class KBStorageManager {
     private func fetchContent(with key: String) -> KBAssetType? {
         // Check in memory cache
         if let asset = memoryCache[key]  {
-            print("KBStorageManager - Found memory - \(key)")
+            logger.log(verbose: "KBStorageManager - Found memory - \(key)")
             return validateAndReturn(asset)
         }
 
         // Check disk
         if let asset = readAssetFomDisk(with: key) {
-            print("KBStorageManager - Found disk - \(key)")
+            logger.log(verbose: "KBStorageManager - Found disk - \(key)")
             return validateAndReturn(asset)
         }
 
-        print("KBStorageManager - No Record - \(key)")
+        logger.log(verbose: "KBStorageManager - No Record - \(key)")
 
         // Nothin
         return nil
@@ -133,9 +133,9 @@ public class KBStorageManager {
         do {
             let data = NSKeyedArchiver.archivedData(withRootObject: asset)
             try data.write(to: pathURL, options: .atomic)
-            print("KBStorageManager - Writing Record to Disk - \(asset.key)")
+            logger.log(verbose: "KBStorageManager - Writing Record to Disk - \(asset.key)")
         } catch {
-            print("KBStorageManager - Error Writing Record to Disk - \(error)")
+            logger.log(error: "KBStorageManager - Error Writing Record to Disk - \(error)")
         }
     }
 
@@ -150,9 +150,9 @@ public class KBStorageManager {
         if FileManager.default.fileExists(atPath: pathURL.path) {
             do {
                 try FileManager.default.removeItem(at: pathURL)
-                print("KBStorageManager - Deleting Record - \(asset.key)")
+                logger.log(verbose: "KBStorageManager - Deleting Record - \(asset.key)")
             } catch {
-                print("KBStorageManager - Error Deleting Record - \(asset.key)")
+                logger.log(error: "KBStorageManager - Error Deleting Record - \(asset.key)")
             }
         }
     }
@@ -167,11 +167,11 @@ extension KBStorageManager: KBStorageManagerType {
 
         switch options.writePolicy {
         case .disk:
-            print("KBStorageManager - Writing to Disk - \(asset.key)")
+            logger.log(verbose: "KBStorageManager - Writing to Disk - \(asset.key)")
             writeToDisk(asset)
             fallthrough // Disk items are included in memory (for now?)
         case .memory:
-            print("KBStorageManager - Writing to Memory - \(asset.key)")
+            logger.log(verbose: "KBStorageManager - Writing to Memory - \(asset.key)")
             memoryCache[asset.key] = asset
         default:
             break
@@ -186,7 +186,7 @@ extension KBStorageManager: KBStorageManagerType {
 
     public func clearMemoryStorage() -> Completable {
         memoryCache = [String: KBAssetType]()
-        print("KBStorageManager - Cleared memory storage")
+        logger.log(verbose: "KBStorageManager - Cleared memory storage")
 
         return Completable.empty()
     }
@@ -198,9 +198,9 @@ extension KBStorageManager: KBStorageManagerType {
 
         do {
             try FileManager.default.removeItem(at: pathURL)
-            print("KBStorageManager - Cleared disk storage")
+            logger.log(verbose: "KBStorageManager - Cleared disk storage")
         } catch {
-            print("KBStorageManager - Error clearing disk storage")
+            logger.log(error: "KBStorageManager - Error clearing disk storage")
         }
 
         return Completable.empty()

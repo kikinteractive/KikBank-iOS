@@ -53,41 +53,31 @@ extension KBDownloadManager: KBDownloadManagerType {
     }
 
     public func downloadData(with request: URLRequest) -> Single<Data> {
-        return Observable<Data>.create({ [weak self] (observable) -> Disposable in
-            guard let this = self, let url = request.url else {
-                observable.onError(NSError())
-                return Disposables.create()
-            }
-
-            print("KBDownloadManager - Fetching - \(url))")
-
-            let request = KBNetworkRequestOperation(request: request)
-            request.completionBlock = {
-                print("KBDownloadManager - Done - \(url)")
-                guard let data = request.result?.data else {
+        return Observable<Data>
+            .create({ [weak self] (observable) -> Disposable in
+                guard let this = self, let url = request.url else {
                     observable.onError(NSError())
-                    return
+                    return Disposables.create()
                 }
-                observable.onNext(data)
-            }
 
-            this.downloadQueue.addOperation(request)
+                this.logger.log(verbose: "KBDownloadManager - Fetching - \(url))")
 
-            return Disposables.create { request.cancel() }
-        })
+                let request = KBNetworkRequestOperation(request: request)
+                request.completionBlock = {
+                    this.logger.log(verbose: "KBDownloadManager - Done - \(url)")
+                    guard let data = request.result?.data else {
+                        observable.onError(NSError())
+                        return
+                    }
+                    observable.onNext(data)
+                }
+
+                this.downloadQueue.addOperation(request)
+
+                return Disposables.create { request.cancel() }
+            })
             .share()
             .take(1)
             .asSingle()
-    }
-}
-
-extension KBDownloadManager {
-
-    @objc public func downloadData(with request: URLRequest, success: @escaping (Data) -> Void, failure: @escaping (Error) -> Void) {
-        downloadData(with: request).subscribe(onSuccess: { (data) in
-            success(data)
-        }) { (error) in
-            failure(error)
-        }.disposed(by: disposeBag)
     }
 }
