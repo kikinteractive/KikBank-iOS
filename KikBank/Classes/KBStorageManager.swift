@@ -109,7 +109,7 @@ public class KBStorageManager {
                 if !expirableAsset.isValid {
                     // Our content is no longer valid, clar it
                     return this.deleteAssetFromDisk(asset).asObservable().take(1).asSingle().flatMap({ (_) -> Single<KBAssetType> in // wtf
-                        return .error(KBStorageError.notFound)
+                        return .error(KBStorageError.invalid)
                     })
                 }
 
