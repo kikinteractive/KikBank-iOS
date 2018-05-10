@@ -20,7 +20,7 @@ public class KBAsset: NSObject, KBAssetType {
     public var key: String
 
     /// The stored data
-    var data: Data
+    public var data: Data
 
     /// The date at which to invalidate the stored data
     public var expiryDate: Date?

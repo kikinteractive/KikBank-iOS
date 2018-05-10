@@ -9,4 +9,5 @@ import Foundation
 
 public protocol KBAssetType {
     var key: String { get }
+    var data: Data { get }
 }

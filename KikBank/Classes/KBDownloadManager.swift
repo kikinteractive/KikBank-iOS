@@ -9,6 +9,11 @@
 import Foundation
 import RxSwift
 
+enum KBDownloadError: Error {
+    case deallocated
+    case badResponse
+}
+
 public protocol KBDownloadManagerType {
 
     /// Modify the current concurrent operation count
@@ -48,7 +53,7 @@ public class KBDownloadManager: NSObject {
 
 extension KBDownloadManager: KBDownloadManagerType {
 
-    @objc public func setMaxConcurrentOperationCount(_ count: Int) {
+    public func setMaxConcurrentOperationCount(_ count: Int) {
         downloadQueue.maxConcurrentOperationCount = count
     }
 
@@ -56,7 +61,7 @@ extension KBDownloadManager: KBDownloadManagerType {
         return Observable<Data>
             .create({ [weak self] (observable) -> Disposable in
                 guard let this = self, let url = request.url else {
-                    observable.onError(NSError())
+                    observable.onError(KBDownloadError.deallocated)
                     return Disposables.create()
                 }
 
@@ -66,7 +71,7 @@ extension KBDownloadManager: KBDownloadManagerType {
                 request.completionBlock = {
                     this.logger.log(verbose: "KBDownloadManager - Done - \(url)")
                     guard let data = request.result?.data else {
-                        observable.onError(NSError())
+                        observable.onError(KBDownloadError.badResponse)
                         return
                     }
                     observable.onNext(data)

@@ -9,6 +9,11 @@
 import Foundation
 import RxSwift
 
+enum KBError: Error {
+    case deallocated
+    case badRequest
+}
+
 public protocol KikBankType {
 
     /// Get data available at the provided URL
@@ -81,6 +86,14 @@ public class KikBank {
         self.storageManager = storageManager
         self.downloadManager = downloadManager
     }
+
+    private func readRequest(for key: String) -> Single<KBAssetType> {
+        return Single.error(NSError())
+    }
+
+    private func saveAsset(_ asset: KBAssetType, with options: KBParameters) {
+
+    }
 }
 
 extension KikBank: KikBankType {
@@ -101,29 +114,33 @@ extension KikBank: KikBankType {
 
     public func data(with request: URLRequest, options: KBParameters) -> Single<Data> {
         guard
-            let uuid = request.url?.absoluteString.hashValue.description,
+            let uuid = request.url?.absoluteString.hashValue.description, // Rethink this
             uuid != ""
             else {
-                return .error(NSError())
+                return .error(KBError.badRequest)
         }
 
-        // Check if there is an existing record
-        if options.readPolicy == .cache,
-            let asset = storageManager.fetch(uuid) as? KBAsset {
-            return .just(asset.data)
+        // Cache only request
+        if options.readPolicy == .cacheOnly {
+            return storageManager.fetch(uuid).flatMap({ (asset) -> Single<Data> in
+                return .just(asset.data)
+            })
         }
 
-        // Create a new record and fetch
         let download = downloadManager.downloadData(with: request)
 
-        // Cache on completion
-        download
-            .subscribe(onSuccess: { [weak self] (data) in
-                _ = self?.storageManager.store(uuid, asset: KBAsset(uuid: uuid, data: data), options: options)
-                }, onError: { [weak self] (error) in
-                    self?.logger.log(error: "KikBank - \(error)")
+        if options.readPolicy == .networkOnly {
+            return download
+        }
+
+        // Write request
+        if options.writePolicy == .disk || options.writePolicy == .memory {
+            download.subscribe(onSuccess: { [weak self] (data) in
+                let asset = KBAsset(uuid: uuid, data: data)
+                self?.storageManager.store(uuid, asset: asset, options: options)
             })
             .disposed(by: disposeBag)
+        }
 
         return download
     }

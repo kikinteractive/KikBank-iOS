@@ -10,19 +10,20 @@ import Foundation
 /**
  Request Read Policy
 
- - cache: Check storage for a copy before making a new request
- - network: Ignore local storage forcing a network request
+ - cacheOnly: Only return locally stored content
+ - networkOnly: Make a new network fetch for each request
+ - any: Check cache before making a new request
  */
 public enum KBReadPolicy: Int {
-    case cache, network
+    case cacheOnly, networkOnly, any
 }
 
 /**
  Request Write Policy
 
  - none: Don't save anything to storage
- - memory: Persit item in memory, lost on storage dealloc
- - disk: Write to disk, fetched on next alloc
+ - memory: Write item to memory, lost on storage dealloc
+ - disk: Write to disk **and** to memory, fetched on next alloc
  */
 public enum KBWritePolicy: Int {
     case none, memory, disk
@@ -34,7 +35,7 @@ public class KBParameters: NSObject {
     public var expiryDate: Date?
 
     /// The data read type
-    public var readPolicy: KBReadPolicy = .cache
+    public var readPolicy: KBReadPolicy = .any
 
     // The data write type
     public var writePolicy: KBWritePolicy = .memory
