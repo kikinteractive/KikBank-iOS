@@ -106,7 +106,7 @@ import Foundation
     /// - Parameter uuid: The unique identifier of the data
     /// - Returns: An asset matching the provided uuid, if one exists
     private func readAssetFomDisk(with key: String) -> KBAssetType? {
-        guard let pathURL = contentURL?.appendingPathExtension(key) else {
+        guard let pathURL = contentURL?.appendingPathComponent(key) else {
             return nil
         }
 
@@ -117,11 +117,16 @@ import Foundation
     ///
     /// - Parameter asset: The asset to be written to disk
     private func writeToDisk(_ asset: KBAssetType) {
-        guard let pathURL = contentURL?.appendingPathExtension(asset.key) else {
+
+        guard let baseURL = contentURL else {
             return
         }
 
+        let pathURL = baseURL.appendingPathComponent(asset.key)
         do {
+            if !FileManager.default.fileExists(atPath: baseURL.path) {
+                try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true, attributes: nil)
+            }
             let data = NSKeyedArchiver.archivedData(withRootObject: asset)
             try data.write(to: pathURL, options: .atomic)
             print("KBStorageManager - Writing Record to Disk - \(asset.key)")
@@ -134,7 +139,7 @@ import Foundation
     ///
     /// - Parameter asset: The asset to be removed from disk
     private func delete(_ asset: KBAssetType) {
-        guard let pathURL = contentURL?.appendingPathExtension(asset.key) else {
+        guard let pathURL = contentURL?.appendingPathComponent(asset.key) else {
             return
         }
 
@@ -182,10 +187,14 @@ extension KBStorageManager: KBStorageManagerType {
         }
 
         do {
-            try FileManager.default.removeItem(at: pathURL)
+            let directoryContents = try FileManager.default.contentsOfDirectory(atPath: pathURL.path)
+            for path in directoryContents {
+                let fullPath = pathURL.appendingPathComponent(path)
+                try FileManager.default.removeItem(atPath: fullPath.path)
+            }
             print("KBStorageManager - Cleared disk storage")
         } catch {
-            print("KBStorageManager - Error clearing disk storage")
+            print("KBStorageManager - Error clearing disk storage - \(error)")
         }
     }
 }

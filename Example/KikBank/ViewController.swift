@@ -36,7 +36,7 @@ class ViewController: UIViewController {
         let url = URL(string: "https://placekitten.com/g/300/300")!
 
         let fetchPolicy = KBParameters()
-        fetchPolicy.readPolicy = .network // Skip cached results
+        fetchPolicy.writePolicy = .disk
         
         kikBank
             .data(with: url, options: fetchPolicy)
@@ -46,6 +46,8 @@ class ViewController: UIViewController {
             .asObservable()
             .bind(to: imageView.rx.image)
             .disposed(by: disposeBag)
+
+        kikBank.storageManager.clearDiskStorage()
     }
 }
 
