@@ -201,4 +201,55 @@ class KBStorageManagerTests: XCTestCase {
 
         waitForExpectations(timeout: 0.5, handler: nil)
     }
+
+    func testClearDisk() {
+        let someData = "text".data(using: .utf8)!
+        let asset = KBAsset(uuid: "myData", data: someData)
+        let options = KBParameters()
+        options.writeOptions = .disk
+
+        let writeExpectation = expectation(description: "testClearDiskWrite")
+        storageManager
+            .store(asset, options: options)
+            .subscribe(onCompleted: {
+                writeExpectation.fulfill()
+            }) { (error) in
+                XCTFail()
+            }
+            .disposed(by: disposeBag)
+
+        let readExpectation = expectation(description: "testClearDiskRead")
+        storageManager
+            .fetch("myData")
+            .subscribe(onSuccess: { (asset) in
+                XCTAssertEqual(asset.key, "myData")
+                readExpectation.fulfill()
+            }) { (error) in
+                XCTFail(error.localizedDescription)
+            }
+            .disposed(by: disposeBag)
+
+        let clearMemoryExpection = expectation(description: "testClearDiskDelete")
+        storageManager
+            .clearMemoryStorage()
+            .subscribe(onCompleted: {
+                clearMemoryExpection.fulfill()
+            }) { (error) in
+                XCTFail(error.localizedDescription)
+            }
+            .disposed(by: disposeBag)
+
+        let errorExpectation = expectation(description: "testClearDiskEmpty")
+        storageManager
+            .fetch("myData")
+            .subscribe(onSuccess: { (asset) in
+                XCTFail("Asset should be deleted")
+            }) { (error) in
+                XCTAssertEqual(error.localizedDescription, KBStorageError.notFound.localizedDescription)
+                errorExpectation.fulfill()
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
+    }
 }

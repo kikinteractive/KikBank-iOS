@@ -12,10 +12,10 @@ import RxSwift
 enum KBStorageError: Error {
     case deallocated
     case badPath
-    case generic // TODO: not this
-    case noWrite // No write policy has been set on
+    case noWrite
     case notFound
     case invalid
+    case generic(error: Error)
 }
 
 public protocol KBStorageManagerType {
@@ -99,49 +99,12 @@ public class KBStorageManager {
                     return
                 }
 
-                this.runDeleteMemoryAction(with: asset)
-                this.runDeleteDiskAction(with: asset)
+                //                this.runDeleteMemoryAction(with: asset)
+                //                this.runDeleteDiskAction(with: asset)
+
+                _ = this.deleteAssetFromMemory(asset)
+                _ = this.deleteAssetFromDisk(asset)
             })
-            .disposed(by: disposeBag)
-    }
-
-    private func runDeleteMemoryAction(with asset: KBAssetType) {
-        deleteAssetFromMemory(asset)
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
-            .subscribe(onCompleted: { [weak self] in
-                guard let this = self else {
-                    return
-                }
-
-                this.logger.log(verbose: "Done")
-            }) { [weak self] (error) in
-                guard let this = self else {
-                    return
-                }
-
-                this.logger.log(error: "Error \(error)")
-            }
-            .disposed(by: disposeBag)
-    }
-
-    private func runDeleteDiskAction(with asset: KBAssetType) {
-        deleteAssetFromDisk(asset)
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
-            .subscribe(onCompleted: { [weak self] in
-                guard let this = self else {
-                    return
-                }
-
-                this.logger.log(verbose: "Done")
-            }) { [weak self] (error) in
-                guard let this = self else {
-                    return
-                }
-
-                this.logger.log(error: "Error \(error)")
-            }
             .disposed(by: disposeBag)
     }
 
@@ -162,6 +125,7 @@ public class KBStorageManager {
             })
             .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
                 guard let expirableAsset = asset as? KBExpirableEntityType else {
+                    // No need to check validity
                     return .just(asset)
                 }
 
@@ -200,7 +164,6 @@ public class KBStorageManager {
                 this.logger.log(verbose: "KBStorageManager - Read - Memory - \(key)")
 
                 single(.success(asset))
-
                 return Disposables.create {}
             })
             .subscribeOn(storageScheduler)
@@ -232,7 +195,6 @@ public class KBStorageManager {
                 this.logger.log(verbose: "KBStorageManager - Read - Disk - \(key)")
 
                 single(.success(unarchived))
-
                 return Disposables.create {}
             })
             .subscribeOn(storageScheduler)
@@ -254,7 +216,6 @@ public class KBStorageManager {
                 this.memoryCache[asset.key] = asset
 
                 completable(.completed)
-
                 return Disposables.create {}
             })
             .subscribeOn(storageScheduler)
@@ -295,7 +256,7 @@ public class KBStorageManager {
 
                 } catch {
                     this.logger.log(error: "KBStorageManager - Write - Disk - Error - \(error)")
-                    completable(.error(KBStorageError.generic))
+                    completable(.error(KBStorageError.generic(error: error)))
                 }
 
                 return Disposables.create {}
@@ -314,10 +275,12 @@ public class KBStorageManager {
                     completable(.error(KBStorageError.deallocated))
                     return Disposables.create {}
                 }
+
                 this.logger.log(verbose: "KBStorageManager - Delete - Memory - \(asset.key)")
 
                 this.memoryCache[asset.key] = nil
 
+                completable(.completed)
                 return Disposables.create {}
             })
             .subscribeOn(storageScheduler)
@@ -344,9 +307,13 @@ public class KBStorageManager {
                     do {
                         try FileManager.default.removeItem(at: pathURL)
                         this.logger.log(verbose: "KBStorageManager - Delete - Disk - \(asset.key)")
+                        completable(.completed)
                     } catch {
                         this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(asset.key)")
+                        completable(.error(KBStorageError.generic(error: error)))
                     }
+                } else {
+                    completable(.error(KBStorageError.notFound))
                 }
 
                 return Disposables.create {}
@@ -377,8 +344,6 @@ extension KBStorageManager: KBStorageManagerType {
     // TODO: Needs read type options
     public func fetch(_ key: String) -> Single<KBAssetType> {
         return fetchContent(with: key)
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
     }
 
     public func clearMemoryStorage() -> Completable {
@@ -394,8 +359,6 @@ extension KBStorageManager: KBStorageManagerType {
 
                 return Disposables.create {}
             })
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
     }
 
     public func clearDiskStorage() -> Completable {
@@ -425,7 +388,5 @@ extension KBStorageManager: KBStorageManagerType {
 
                 return Disposables.create {}
             })
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
     }
 }
