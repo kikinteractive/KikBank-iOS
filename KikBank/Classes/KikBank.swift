@@ -104,7 +104,7 @@ public class KikBank {
 
     private func runSaveAction(with asset: KBAssetType, options: KBParameters) {
         storageManager
-            .store(asset, options: options).subscribe(onCompleted: { [weak self] in
+            .store(asset, writeOptions: options.writeOptions).subscribe(onCompleted: { [weak self] in
                 guard let this = self else {
                     return
                 }
@@ -153,10 +153,12 @@ extension KikBank: KikBankType {
         }
 
         // Cache only request
-        if options.readOptions == .cacheOnly {
-            return storageManager.fetch(uuid).flatMap({ (asset) -> Single<Data> in
-                return .just(asset.data)
-            })
+        if options.readOptions == .cache {
+            return storageManager
+                .fetch(uuid, readOptions: options.readOptions)
+                .flatMap({ (asset) -> Single<Data> in
+                    return .just(asset.data)
+                })
         }
 
         // This is incomplete, still needs to check cache for value

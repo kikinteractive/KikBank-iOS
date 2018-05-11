@@ -23,16 +23,19 @@ public protocol KBStorageManagerType {
     /// Store the provded data based on provided storage policy
     ///
     /// - Parameters:
-    ///   - key: The unique identifier of the asset
     ///   - asset: The asset to be stored
-    ///   - options: The write policy of the asset
-    func store(_ asset: KBAssetType, options: KBParameters) -> Completable
+    ///   - writeOptions: The write policy of the asset
+    /// - Returns: A completable indicating the write operation finished
+    func store(_ asset: KBAssetType, writeOptions: KBWriteOtions) -> Completable
+
 
     /// Get any valid data defined by the provided uuid
     ///
-    /// - Parameter key: The unique identifier of the asset
-    /// - Returns: Valid asset, if possible
-    func fetch(_ key: String) -> Single<KBAssetType>
+    /// - Parameters
+    ///     - key: The unique identifier of the asset
+    ///     - readOptions: The read policy of the request
+    /// - Returns: An asset matching the key and read options, if availiable
+    func fetch(_ key: String, readOptions: KBReadOptions) -> Single<KBAssetType>
 
     /// Reset the in memory storage
     ///
@@ -53,7 +56,7 @@ public protocol KBStorageManagerType {
 public class KBStorageManager {
 
     private struct Constants {
-        static let storageSchedulerName = "kbStorageManager.serialQueue"
+        static let operationSchedulerName = "kbStorageManager.serialQueue"
     }
 
     /// Custom path for content storage
@@ -65,12 +68,18 @@ public class KBStorageManager {
     /// Delete operation queue
     private lazy var deleteSubject = PublishSubject<KBAssetType>()
     private lazy var disposeBag = DisposeBag()
-    private lazy var storageScheduler = SerialDispatchQueueScheduler(internalSerialQueueName: Constants.storageSchedulerName)
+
+    private lazy var operationQueue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
+        return queue
+    }()
+    private lazy var operationScheduler = OperationQueueScheduler(operationQueue: operationQueue)
 
     public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
 
     /// Convenience accessor of the disk file location
-    private lazy var contentURL: URL? = {
+private lazy var contentURL: URL? = {
         let fileManager = FileManager.default
 
         do {
@@ -92,19 +101,60 @@ public class KBStorageManager {
     /// Attach all observables
     private func bind() {
         deleteSubject
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
             .subscribe(onNext: { [weak self] (asset) in
                 guard let this = self else {
                     return
                 }
 
-                //                this.runDeleteMemoryAction(with: asset)
-                //                this.runDeleteDiskAction(with: asset)
-
-                _ = this.deleteAssetFromMemory(asset)
-                _ = this.deleteAssetFromDisk(asset)
+                this.runDeleteMemoryAction(with: asset)
+                this.runDeleteDiskAction(with: asset)
             })
+            .disposed(by: disposeBag)
+    }
+
+    /// Enqueues then runs an asset memory delete action
+    ///
+    private func runDeleteMemoryAction(with asset: KBAssetType) {
+        deleteAssetFromMemory(asset)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
+            .subscribe(onCompleted: { [weak self] in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(verbose: "Done")
+            }) { [weak self] (error) in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(error: "Error \(error)")
+            }
+            .disposed(by: disposeBag)
+    }
+
+    /// Enqueues then runs an asset disk delete action
+    ///
+    private func runDeleteDiskAction(with asset: KBAssetType) {
+        deleteAssetFromDisk(asset)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
+            .subscribe(onCompleted: { [weak self] in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(verbose: "Done")
+            }) { [weak self] (error) in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(error: "Error \(error)")
+            }
             .disposed(by: disposeBag)
     }
 
@@ -112,10 +162,10 @@ public class KBStorageManager {
     ///
     /// - Parameter uuid: The unique identifier of the asset
     /// - Returns: Valid asset, if possible
-    private func fetchContent(with key: String) -> Single<KBAssetType> { // TODO: Need to respect read options type now
+    private func fetchContent(with key: String, readOptions: KBReadOptions) -> Single<KBAssetType> {
         return readAssetFromMemory(with: key)
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
             .catchError({ [weak self] (error) -> Single<KBAssetType> in
                 guard let this = self else {
                     return .error(KBStorageError.deallocated)
@@ -124,16 +174,11 @@ public class KBStorageManager {
                 return this.readAssetFomDisk(with: key)
             })
             .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
-                guard let expirableAsset = asset as? KBExpirableEntityType else {
-                    // No need to check validity
-                    return .just(asset)
-                }
-
                 guard let this = self else {
                     return .error(KBStorageError.deallocated)
                 }
 
-                if !expirableAsset.isValid {
+                if !asset.isValid {
                     // Our content is no longer valid, clear it
                     this.deleteSubject.onNext(asset)
                     // Nothing to return
@@ -148,7 +193,7 @@ public class KBStorageManager {
     ///
     /// - Parameter key: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
-    private func readAssetFromMemory(with key: String) -> Single<KBAssetType> {
+private func readAssetFromMemory(with key: String) -> Single<KBAssetType> {
         return Single
             .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
@@ -166,8 +211,8 @@ public class KBStorageManager {
                 single(.success(asset))
                 return Disposables.create {}
             })
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 
     /// Reads an asset defined by a unique idenentifier from disk if available
@@ -197,8 +242,8 @@ public class KBStorageManager {
                 single(.success(unarchived))
                 return Disposables.create {}
             })
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 
     /// Write the provided asset to memory
@@ -218,8 +263,8 @@ public class KBStorageManager {
                 completable(.completed)
                 return Disposables.create {}
             })
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 
     /// Write the provided asset to disk
@@ -261,8 +306,8 @@ public class KBStorageManager {
 
                 return Disposables.create {}
             })
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 
     /// Deletes the provided asset from memory storageg
@@ -283,8 +328,8 @@ public class KBStorageManager {
                 completable(.completed)
                 return Disposables.create {}
             })
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 
     /// Deletes the provided asset from disk storageg
@@ -318,32 +363,32 @@ public class KBStorageManager {
 
                 return Disposables.create {}
             })
-            .subscribeOn(storageScheduler)
-            .observeOn(storageScheduler)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 }
 
 extension KBStorageManager: KBStorageManagerType {
 
-    public func store(_ asset: KBAssetType, options: KBParameters) -> Completable {
-        if var asset = asset as? KBExpirableEntityType {
-            asset.expiryDate = options.expiryDate
-        }
-
-        if options.writeOptions == .all {
+    public func store(_ asset: KBAssetType, writeOptions: KBWriteOtions) -> Completable {
+        if writeOptions == .all {
             return writeToDisk(asset).andThen(writeToMemory(asset))
-        } else if options.writeOptions == .disk {
+        } else if writeOptions == .disk {
             return writeToDisk(asset)
-        } else if options.writeOptions == .memory {
+        } else if writeOptions == .memory {
             return writeToMemory(asset)
         }
 
-        return Completable.empty()
+        return Completable
+            .empty()
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 
-    // TODO: Needs read type options
-    public func fetch(_ key: String) -> Single<KBAssetType> {
-        return fetchContent(with: key)
+    public func fetch(_ key: String, readOptions: KBReadOptions) -> Single<KBAssetType> {
+        return fetchContent(with: key, readOptions: readOptions)
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 
     public func clearMemoryStorage() -> Completable {
@@ -357,8 +402,11 @@ extension KBStorageManager: KBStorageManagerType {
                 this.memoryCache = [String: KBAssetType]()
                 this.logger.log(verbose: "KBStorageManager - Delete - Memory - All")
 
+                completable(.completed)
                 return Disposables.create {}
             })
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 
     public func clearDiskStorage() -> Completable {
@@ -367,7 +415,6 @@ extension KBStorageManager: KBStorageManagerType {
                 guard let this = self else {
                     completable(.error(KBStorageError.deallocated))
                     return Disposables.create {}
-                    
                 }
 
                 guard let pathURL = this.contentURL else {
@@ -382,11 +429,15 @@ extension KBStorageManager: KBStorageManagerType {
                         try FileManager.default.removeItem(atPath: fullPath.path)
                     }
                     this.logger.log(verbose: "KBStorageManager - Delete - Disk - All")
+                    completable(.completed)
                 } catch {
                     this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(error)")
+                    completable(.error(KBStorageError.generic(error: error)))
                 }
 
                 return Disposables.create {}
             })
+            .subscribeOn(operationScheduler)
+            .observeOn(operationScheduler)
     }
 }

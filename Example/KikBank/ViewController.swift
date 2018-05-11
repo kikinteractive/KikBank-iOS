@@ -37,7 +37,7 @@ class ViewController: UIViewController {
 
         let fetchPolicy = KBParameters()
         fetchPolicy.writeOptions = .all
-        fetchPolicy.readOptions = .cacheOnly
+        fetchPolicy.readOptions = .cache
 
         kikBank
             .data(with: url, options: fetchPolicy)
