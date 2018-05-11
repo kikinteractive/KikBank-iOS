@@ -183,16 +183,3 @@ extension KikBank: KikBankType {
         return download
     }
 }
-
-extension KikBank {
-
-    @objc public func data(with request: URLRequest, options: KBParameters, success: @escaping (Data) -> Void, failure: @escaping (Error) -> Void) {
-        data(with: request, options: options)
-            .subscribe(onSuccess: { (data) in
-                success(data)
-            }) { (error) in
-                failure(error)
-            }
-            .disposed(by: disposeBag)
-    }
-}

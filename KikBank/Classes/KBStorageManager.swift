@@ -371,18 +371,20 @@ private func readAssetFromMemory(with key: String) -> Single<KBAssetType> {
 extension KBStorageManager: KBStorageManagerType {
 
     public func store(_ asset: KBAssetType, writeOptions: KBWriteOtions) -> Completable {
-        if writeOptions == .all {
-            return writeToDisk(asset).andThen(writeToMemory(asset))
-        } else if writeOptions == .disk {
-            return writeToDisk(asset)
-        } else if writeOptions == .memory {
-            return writeToMemory(asset)
-        }
-
-        return Completable
+        var completable = Completable
             .empty()
             .subscribeOn(operationScheduler)
             .observeOn(operationScheduler)
+
+        if writeOptions.contains(.disk) {
+            completable = completable.andThen(writeToDisk(asset))
+        }
+
+        if writeOptions.contains(.memory) {
+            completable = completable.andThen(writeToMemory(asset))
+        }
+
+        return completable
     }
 
     public func fetch(_ key: String, readOptions: KBReadOptions) -> Single<KBAssetType> {
