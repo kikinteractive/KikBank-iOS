@@ -16,6 +16,7 @@
 		AD215C90202C0211009F77A8 /* KBAsyncOperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD215C8C202C0190009F77A8 /* KBAsyncOperationTests.swift */; };
 		AD215C93202C039B009F77A8 /* KBAssetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD215C91202C02FB009F77A8 /* KBAssetTests.swift */; };
 		AD3C33FE202E037C0001D4EA /* ObjCBridgeCheck.m in Sources */ = {isa = PBXBuildFile; fileRef = AD3C33FD202E037C0001D4EA /* ObjCBridgeCheck.m */; };
+		AD54D2B520A545640089BC4C /* KBStorageManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD54D2B320A545430089BC4C /* KBStorageManagerTests.swift */; };
 		B3BFCA0E3520A8B3355E30FE /* Pods_KikBank_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92120D938304584D5B16E88D /* Pods_KikBank_Tests.framework */; };
 		E7AED447F9012C22B3406C67 /* Pods_KikBank_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A9FAB7D39E95E769BE38EFE /* Pods_KikBank_Example.framework */; };
 /* End PBXBuildFile section */
@@ -52,6 +53,7 @@
 		AD215C91202C02FB009F77A8 /* KBAssetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBAssetTests.swift; sourceTree = "<group>"; };
 		AD3C33FC202E037C0001D4EA /* KikBank_Example-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "KikBank_Example-Bridging-Header.h"; sourceTree = "<group>"; };
 		AD3C33FD202E037C0001D4EA /* ObjCBridgeCheck.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjCBridgeCheck.m; sourceTree = "<group>"; };
+		AD54D2B320A545430089BC4C /* KBStorageManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBStorageManagerTests.swift; sourceTree = "<group>"; };
 		B5A3F0682D706E80ED58713F /* Pods-KikBank_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KikBank_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-KikBank_Tests/Pods-KikBank_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		C919D870A1DC4D167D0520EC /* KikBank.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = KikBank.podspec; path = ../KikBank.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 /* End PBXFileReference section */
@@ -138,6 +140,7 @@
 			children = (
 				AD215C8C202C0190009F77A8 /* KBAsyncOperationTests.swift */,
 				AD215C91202C02FB009F77A8 /* KBAssetTests.swift */,
+				AD54D2B320A545430089BC4C /* KBStorageManagerTests.swift */,
 				607FACE91AFB9204008FA782 /* Supporting Files */,
 			);
 			path = Tests;
@@ -404,6 +407,7 @@
 			files = (
 				AD215C90202C0211009F77A8 /* KBAsyncOperationTests.swift in Sources */,
 				AD215C93202C039B009F77A8 /* KBAssetTests.swift in Sources */,
+				AD54D2B520A545640089BC4C /* KBStorageManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

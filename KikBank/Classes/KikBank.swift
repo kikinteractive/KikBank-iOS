@@ -104,7 +104,7 @@ public class KikBank {
 
     private func runSaveAction(with asset: KBAssetType, options: KBParameters) {
         storageManager
-            .store(asset.key, asset: asset, options: options).subscribe(onCompleted: { [weak self] in
+            .store(asset, options: options).subscribe(onCompleted: { [weak self] in
                 guard let this = self else {
                     return
                 }
