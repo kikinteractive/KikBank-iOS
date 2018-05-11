@@ -11,7 +11,7 @@ import RxSwift
 
 enum KBStorageError: Error {
     case deallocated
-    case pathError
+    case badPath
     case generic // TODO: not this
     case noWrite // No write policy has been set on
     case notFound
@@ -39,7 +39,7 @@ public protocol KBStorageManagerType {
     func clearMemoryStorage() -> Completable
 
     /// Resets the storage
-    /// Caution! This removes all stored content at the current content path
+    /// Caution! This removes everything stored at the current content path
     /// The storage manager may be using a shared resoure location
     ///
     func clearDiskStorage() -> Completable
@@ -117,7 +117,8 @@ public class KBStorageManager {
                 }
 
                 this.logger.log(error: "Error \(error)")
-            }.disposed(by: disposeBag)
+            }
+            .disposed(by: disposeBag)
     }
 
     private func runDeleteDiskAction(with asset: KBAssetType) {
@@ -134,7 +135,8 @@ public class KBStorageManager {
                 }
 
                 this.logger.log(error: "Error \(error)")
-            }.disposed(by: disposeBag)
+            }
+            .disposed(by: disposeBag)
     }
 
     /// Checks for a stored asset matching the povided uuid
@@ -149,7 +151,8 @@ public class KBStorageManager {
                 }
 
                 return this.readAssetFomDisk(with: key)
-            }).flatMap({ [weak self] (asset) -> Single<KBAssetType> in
+            })
+            .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
                 guard let expirableAsset = asset as? KBExpirableEntityType else {
                     return .just(asset)
                 }
@@ -166,7 +169,8 @@ public class KBStorageManager {
                 }
 
                 return .just(asset)
-            }).subscribeOn(storageScheduler)
+            })
+            .subscribeOn(storageScheduler)
     }
 
     /// Read an asset defined by a unique idenentifier from in-memory cache
@@ -206,7 +210,7 @@ public class KBStorageManager {
                 }
 
                 guard let pathURL = this.contentURL?.appendingPathComponent(key) else {
-                    single(.error(KBStorageError.pathError))
+                    single(.error(KBStorageError.badPath))
                     return Disposables.create {}
                 }
 
@@ -255,7 +259,7 @@ public class KBStorageManager {
                 }
 
                 guard let contentURL = this.contentURL else {
-                    completable(.error(KBStorageError.pathError))
+                    completable(.error(KBStorageError.badPath))
                     return Disposables.create {}
                 }
 
@@ -316,7 +320,7 @@ public class KBStorageManager {
                 }
 
                 guard let pathURL = this.contentURL?.appendingPathComponent(asset.key) else {
-                    completable(.error(KBStorageError.pathError))
+                    completable(.error(KBStorageError.badPath))
                     return Disposables.create {}
                 }
 
@@ -337,16 +341,16 @@ public class KBStorageManager {
 
 extension KBStorageManager: KBStorageManagerType {
 
-    // TODO switch params to just read type
     public func store(_ key: String, asset: KBAssetType, options: KBParameters) -> Completable {
         if var asset = asset as? KBExpirableEntityType {
             asset.expiryDate = options.expiryDate
         }
 
-        if options.writePolicy == .disk {
+        if options.writeOptions == .all {
             return writeToDisk(asset).andThen(writeToMemory(asset))
-
-        } else if options.writePolicy == .memory {
+        } else if options.writeOptions == .disk {
+            return writeToDisk(asset)
+        } else if options.writeOptions == .memory {
             return writeToMemory(asset)
         }
 
@@ -367,7 +371,7 @@ extension KBStorageManager: KBStorageManagerType {
 
     public func clearDiskStorage() -> Completable {
         guard let pathURL = contentURL else {
-            return Completable.error(NSError())
+            return Completable.error(KBStorageError.badPath)
         }
 
         do {

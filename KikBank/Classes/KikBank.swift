@@ -153,7 +153,7 @@ extension KikBank: KikBankType {
         }
 
         // Cache only request
-        if options.readPolicy == .cacheOnly {
+        if options.readOptions == .cacheOnly {
             return storageManager.fetch(uuid).flatMap({ (asset) -> Single<Data> in
                 return .just(asset.data)
             })
@@ -166,7 +166,7 @@ extension KikBank: KikBankType {
         let download = downloadManager.downloadData(with: request)
 
         // Write request
-        if options.writePolicy == .disk || options.writePolicy == .memory {
+        if options.writeOptions == .disk || options.writeOptions == .memory {
             download.subscribe(onSuccess: { [weak self] (data) in
                 guard let this = self else {
                     return

@@ -36,14 +36,15 @@ class ViewController: UIViewController {
         let url = URL(string: "https://placekitten.com/g/300/300")!
 
         let fetchPolicy = KBParameters()
-//        fetchPolicy.readPolicy = .networkOnly // Skip cached results
-        fetchPolicy.writePolicy = .disk
+        fetchPolicy.writeOptions = .all
+        fetchPolicy.readOptions = .cacheOnly
 
         kikBank
             .data(with: url, options: fetchPolicy)
             .map { (data) -> UIImage? in
                 return UIImage(data: data)
             }
+            .asDriver(onErrorJustReturn: nil)
             .asObservable()
             .bind(to: imageView.rx.image)
             .disposed(by: disposeBag)

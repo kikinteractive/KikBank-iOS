@@ -10,23 +10,44 @@ import Foundation
 /**
  Request Read Policy
 
- - cacheOnly: Only return locally stored content
+ - diskOnly: Only returns content from disk storage
+ - memoryOnly: Only returns content in memory
  - networkOnly: Make a new network fetch for each request
- - any: Check cache before making a new request
+ - any: Check memory and then disk before making a network request
  */
-public enum KBReadPolicy: Int {
-    case cacheOnly, networkOnly, any
+public struct KBReadOtions: OptionSet {
+    public let rawValue: Int
+
+    public static let diskOnly =       KBReadOtions(rawValue: 1 << 0)
+    public static let memoryOnly =     KBReadOtions(rawValue: 1 << 1)
+    public static let networkOnly =    KBReadOtions(rawValue: 1 << 2)
+
+    public static let cacheOnly: KBReadOtions = [.diskOnly, .memoryOnly]
+    public static let any: KBReadOtions = [.diskOnly, .memoryOnly, .networkOnly]
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
 }
 
 /**
  Request Write Policy
 
- - none: Don't save anything to storage
  - memory: Write item to memory, lost on storage dealloc
- - disk: Write to disk **and** to memory, fetched on next alloc
+ - disk: Write item to disk, saved between sessions
+ - all: Write item to memory and to disk storage
  */
-public enum KBWritePolicy: Int {
-    case none, memory, disk
+public struct KBWriteOtions: OptionSet {
+    public let rawValue: Int
+
+    public static let memory = KBWriteOtions(rawValue: 1 << 0)
+    public static let disk =   KBWriteOtions(rawValue: 1 << 1)
+
+    public static let all: KBWriteOtions = [.memory, .disk]
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
 }
 
 /// Specify how data should be fetched and saved
@@ -35,8 +56,8 @@ public class KBParameters: NSObject {
     public var expiryDate: Date?
 
     /// The data read type
-    public var readPolicy: KBReadPolicy = .any
+    public var readOptions: KBReadOtions = .any
 
     // The data write type
-    public var writePolicy: KBWritePolicy = .memory
+    public var writeOptions: KBWriteOtions = .memory
 }
