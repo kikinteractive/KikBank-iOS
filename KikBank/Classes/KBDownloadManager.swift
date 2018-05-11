@@ -11,6 +11,7 @@ import RxSwift
 
 enum KBDownloadError: Error {
     case deallocated
+    case badRequest
     case badResponse
 }
 
@@ -60,12 +61,17 @@ extension KBDownloadManager: KBDownloadManagerType {
     public func downloadData(with request: URLRequest) -> Single<Data> {
         return Observable<Data>
             .create({ [weak self] (observable) -> Disposable in
-                guard let this = self, let url = request.url else {
+                guard let this = self else {
                     observable.onError(KBDownloadError.deallocated)
-                    return Disposables.create()
+                    return Disposables.create {}
                 }
 
-                this.logger.log(verbose: "KBDownloadManager - Fetching - \(url))")
+                guard let url = request.url else {
+                    observable.onError(KBDownloadError.badRequest)
+                    return Disposables.create {}
+                }
+
+                this.logger.log(verbose: "KBDownloadManager - Fetching - \(url)")
 
                 let request = KBNetworkRequestOperation(request: request)
                 request.completionBlock = {

@@ -69,6 +69,8 @@ public class KikBank {
     public var downloadManager: KBDownloadManagerType
     public var storageManager: KBStorageManagerType
 
+    private lazy var storageQueue = PublishSubject<(KBAssetType, KBParameters)>()
+
     public var logger: KBStaticLoggerType.Type = KBStaticLogger.self {
         didSet {
             downloadManager.logger = logger
@@ -85,6 +87,36 @@ public class KikBank {
     public required init(storageManager: KBStorageManagerType, downloadManager: KBDownloadManagerType) {
         self.storageManager = storageManager
         self.downloadManager = downloadManager
+        bind()
+    }
+
+    private func bind() {
+        storageQueue
+            .subscribe(onNext: { [weak self] (asset, options) in
+                guard let this = self else {
+                    return
+                }
+
+                this.runSaveAction(with: asset, options: options)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    private func runSaveAction(with asset: KBAssetType, options: KBParameters) {
+        storageManager
+            .store(asset.key, asset: asset, options: options).subscribe(onCompleted: { [weak self] in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(verbose: "Saved")
+            }) { [weak self] (error) in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(error: "Error \(error)")
+            }.disposed(by: disposeBag)
     }
 
     private func readRequest(for key: String) -> Single<KBAssetType> {
@@ -127,17 +159,21 @@ extension KikBank: KikBankType {
             })
         }
 
+        // This is incomplete, still needs to check cache for value
+        //
+        //
+        
         let download = downloadManager.downloadData(with: request)
-
-        if options.readPolicy == .networkOnly {
-            return download
-        }
 
         // Write request
         if options.writePolicy == .disk || options.writePolicy == .memory {
             download.subscribe(onSuccess: { [weak self] (data) in
+                guard let this = self else {
+                    return
+                }
+
                 let asset = KBAsset(uuid: uuid, data: data)
-                self?.storageManager.store(uuid, asset: asset, options: options)
+                this.storageQueue.onNext((asset, options))
             })
             .disposed(by: disposeBag)
         }
