@@ -79,7 +79,7 @@ public class KBStorageManager {
     public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
 
     /// Convenience accessor of the disk file location
-private lazy var contentURL: URL? = {
+    private lazy var contentURL: URL? = {
         let fileManager = FileManager.default
 
         do {
@@ -193,7 +193,7 @@ private lazy var contentURL: URL? = {
     ///
     /// - Parameter key: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
-private func readAssetFromMemory(with key: String) -> Single<KBAssetType> {
+    private func readAssetFromMemory(with key: String) -> Single<KBAssetType> {
         return Single
             .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
