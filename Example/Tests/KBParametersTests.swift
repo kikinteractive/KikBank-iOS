@@ -12,16 +12,31 @@ import XCTest
 @testable import KikBank
 class KBParametersTests: XCTestCase {
 
-    // Cache read option should include only disk and memory
+    // Read
+
+    // Disk read should only include disk
+    func testDiskReadOptions() {
+        let readOption = KBReadOptions.disk
+
+        XCTAssertEqual(readOption, KBReadOptions.disk)
+        XCTAssertTrue(readOption.contains(.disk))
+
+        XCTAssertFalse(readOption.contains(.memory))
+        XCTAssertFalse(readOption.contains(.network))
+    }
+
+    // Cache read should include only disk and memory
     func testCacheReadOption() {
         let readOption = KBReadOptions.cache
 
         XCTAssertTrue(readOption.contains(.cache))
         XCTAssertTrue(readOption.contains(.memory))
         XCTAssertTrue(readOption.contains(.disk))
+
         XCTAssertFalse(readOption.contains(.network))
     }
 
+    // Any read should include all options
     func testAnyReadOption() {
         let readOption = KBReadOptions.any
 
@@ -31,6 +46,9 @@ class KBParametersTests: XCTestCase {
         XCTAssertTrue(readOption.contains(.network))
     }
 
+    // Write
+
+    // All write should include all options
     func testAllWriteOption() {
         let writeOption = KBWriteOtions.all
 

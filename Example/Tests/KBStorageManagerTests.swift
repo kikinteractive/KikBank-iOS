@@ -223,7 +223,7 @@ class KBStorageManagerTests: XCTestCase {
 
         let clearMemoryExpection = expectation(description: "testClearDiskDelete")
         storageManager
-            .clearMemoryStorage()
+            .clearDiskStorage()
             .subscribe(onCompleted: {
                 clearMemoryExpection.fulfill()
             }) { (error) in
