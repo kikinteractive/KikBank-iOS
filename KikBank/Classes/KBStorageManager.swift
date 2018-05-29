@@ -35,7 +35,7 @@ public protocol KBStorageManagerType {
     ///     - key: The unique identifier of the asset
     ///     - readOptions: The read policy of the request
     /// - Returns: An asset matching the key and read options, if availiable
-    func fetch(_ key: String, readOptions: KBReadOptions) -> Single<KBAssetType>
+    func fetch(_ uuid: UUID, readOptions: KBReadOptions) -> Single<KBAssetType>
 
     /// Reset the in memory storage
     ///
@@ -63,7 +63,7 @@ public class KBStorageManager {
     private let cachePathExtension: String
 
     /// The in memory asset cache
-    private lazy var memoryCache = [String: KBAssetType]()
+    private lazy var memoryCache = [UUID: KBAssetType]()
 
     /// Delete operation queue
     private lazy var deleteSubject = PublishSubject<KBAssetType>()
@@ -74,7 +74,8 @@ public class KBStorageManager {
         queue.maxConcurrentOperationCount = 1
         return queue
     }()
-    private lazy var operationScheduler = OperationQueueScheduler(operationQueue: operationQueue)
+
+    private lazy var operationScheduler = SerialDispatchQueueScheduler(internalSerialQueueName: "test")
 
     public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
 
@@ -162,8 +163,8 @@ public class KBStorageManager {
     ///
     /// - Parameter uuid: The unique identifier of the asset
     /// - Returns: Valid asset, if possible
-    private func fetchContent(with key: String, readOptions: KBReadOptions) -> Single<KBAssetType> {
-        return readAssetFromMemory(with: key)
+    private func fetchContent(with uuid: UUID, readOptions: KBReadOptions) -> Single<KBAssetType> {
+        return readAssetFromMemory(with: uuid)
             .subscribeOn(operationScheduler)
             .observeOn(operationScheduler)
             .catchError({ [weak self] (error) -> Single<KBAssetType> in
@@ -171,7 +172,7 @@ public class KBStorageManager {
                     return .error(KBStorageError.deallocated)
                 }
 
-                return this.readAssetFomDisk(with: key)
+                return this.readAssetFomDisk(with: uuid)
             })
             .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
                 guard let this = self else {
@@ -191,9 +192,9 @@ public class KBStorageManager {
 
     /// Read an asset defined by a unique idenentifier from in-memory cache
     ///
-    /// - Parameter key: The unique identifier of the data
+    /// - Parameter uuid: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
-    private func readAssetFromMemory(with key: String) -> Single<KBAssetType> {
+    private func readAssetFromMemory(with uuid: UUID) -> Single<KBAssetType> {
         return Single
             .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
@@ -201,12 +202,12 @@ public class KBStorageManager {
                     return Disposables.create {}
                 }
 
-                guard let asset = this.memoryCache[key] else {
+                guard let asset = this.memoryCache[uuid] else {
                     single(.error(KBStorageError.notFound))
                     return Disposables.create {}
                 }
 
-                this.logger.log(verbose: "KBStorageManager - Read - Memory - \(key)")
+                this.logger.log(verbose: "KBStorageManager - Read - Memory - \(uuid)")
 
                 single(.success(asset))
                 return Disposables.create {}
@@ -217,9 +218,9 @@ public class KBStorageManager {
 
     /// Reads an asset defined by a unique idenentifier from disk if available
     ///
-    /// - Parameter key: The unique identifier of the data
+    /// - Parameter uuid: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
-    private func readAssetFomDisk(with key: String) -> Single<KBAssetType> {
+    private func readAssetFomDisk(with uuid: UUID) -> Single<KBAssetType> {
         return Single
             .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
@@ -227,7 +228,7 @@ public class KBStorageManager {
                     return Disposables.create {}
                 }
 
-                guard let pathURL = this.contentURL?.appendingPathComponent(key) else {
+                guard let pathURL = this.contentURL?.appendingPathComponent(uuid.uuidString) else {
                     single(.error(KBStorageError.badPath))
                     return Disposables.create {}
                 }
@@ -237,7 +238,7 @@ public class KBStorageManager {
                     return Disposables.create {}
                 }
 
-                this.logger.log(verbose: "KBStorageManager - Read - Disk - \(key)")
+                this.logger.log(verbose: "KBStorageManager - Read - Disk - \(uuid)")
 
                 single(.success(unarchived))
                 return Disposables.create {}
@@ -283,7 +284,7 @@ public class KBStorageManager {
                     return Disposables.create {}
                 }
 
-                let pathURL = contentURL.appendingPathComponent(asset.key)
+                let pathURL = contentURL.appendingPathComponent(asset.key.uuidString)
 
                 do {
                     if !FileManager.default.fileExists(atPath: contentURL.path) {
@@ -343,7 +344,7 @@ public class KBStorageManager {
                     return Disposables.create {}
                 }
 
-                guard let pathURL = this.contentURL?.appendingPathComponent(asset.key) else {
+                guard let pathURL = this.contentURL?.appendingPathComponent(asset.key.uuidString) else {
                     completable(.error(KBStorageError.badPath))
                     return Disposables.create {}
                 }
@@ -387,8 +388,8 @@ extension KBStorageManager: KBStorageManagerType {
         return completable
     }
 
-    public func fetch(_ key: String, readOptions: KBReadOptions) -> Single<KBAssetType> {
-        return fetchContent(with: key, readOptions: readOptions)
+    public func fetch(_ uuid: UUID, readOptions: KBReadOptions) -> Single<KBAssetType> {
+        return fetchContent(with: uuid, readOptions: readOptions)
             .subscribeOn(operationScheduler)
             .observeOn(operationScheduler)
     }
@@ -401,7 +402,7 @@ extension KBStorageManager: KBStorageManagerType {
                     return Disposables.create {}
                 }
 
-                this.memoryCache = [String: KBAssetType]()
+                this.memoryCache = [UUID: KBAssetType]()
                 this.logger.log(verbose: "KBStorageManager - Delete - Memory - All")
 
                 completable(.completed)

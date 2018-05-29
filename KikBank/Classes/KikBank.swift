@@ -123,8 +123,9 @@ public class KikBank {
         return Single.error(NSError())
     }
 
-    private func saveAsset(_ asset: KBAssetType, with options: KBParameters) {
-
+    // Is this even possible?
+    private func generateUUID(from string: String?) -> UUID? {
+        return nil
     }
 }
 
@@ -146,8 +147,7 @@ extension KikBank: KikBankType {
 
     public func data(with request: URLRequest, options: KBParameters) -> Single<Data> {
         guard
-            let uuid = request.url?.absoluteString.hashValue.description, // Rethink this
-            uuid != ""
+            let uuid = generateUUID(from: request.url?.absoluteString) // Rethink this
             else {
                 return .error(KBError.badRequest)
         }

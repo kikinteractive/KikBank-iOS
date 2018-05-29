@@ -17,7 +17,7 @@ public class KBAsset: NSObject, KBAssetType {
     }
 
     /// The unique identifer of the data request
-    public var key: String
+    public var key: UUID
 
     /// The stored data
     public var data: Data
@@ -25,7 +25,7 @@ public class KBAsset: NSObject, KBAssetType {
     /// The date at which to invalidate the stored data
     public var expiryDate: Date?
 
-    public init(uuid: String, data: Data) {
+    public init(uuid: UUID, data: Data) {
         self.key = uuid
         self.data = data
         super.init()
@@ -33,7 +33,7 @@ public class KBAsset: NSObject, KBAssetType {
 
     public required init?(coder aDecoder: NSCoder) {
         guard
-            let uuid = aDecoder.decodeObject(forKey: Constants.uuidKey) as? String,
+            let uuid = aDecoder.decodeObject(forKey: Constants.uuidKey) as? UUID,
             let data = aDecoder.decodeObject(forKey: Constants.dataKey) as? Data else {
                 return nil
         }
