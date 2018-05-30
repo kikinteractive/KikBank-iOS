@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol KBAssetType {
-    var key: UUID { get }
+    var identifier: Int { get }
     var data: Data { get }
 
     var expiryDate: Date? { get set }

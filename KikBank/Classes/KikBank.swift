@@ -63,13 +63,9 @@ public class KikBank {
     private struct Constants {
         static let pathExtension = "KBStorage"
     }
-    
-    private lazy var disposeBag = DisposeBag()
 
     public var downloadManager: KBDownloadManagerType
     public var storageManager: KBStorageManagerType
-
-    private lazy var storageQueue = PublishSubject<(KBAssetType, KBParameters)>()
 
     public var logger: KBStaticLoggerType.Type = KBStaticLogger.self {
         didSet {
@@ -77,6 +73,9 @@ public class KikBank {
             storageManager.logger = logger
         }
     }
+
+    private lazy var saveOperation = PublishSubject<(KBAssetType, KBParameters)>()
+    private lazy var disposeBag = DisposeBag()
 
     public convenience init() {
         let storageManager = KBStorageManager(pathExtension: Constants.pathExtension)
@@ -87,45 +86,22 @@ public class KikBank {
     public required init(storageManager: KBStorageManagerType, downloadManager: KBDownloadManagerType) {
         self.storageManager = storageManager
         self.downloadManager = downloadManager
+
         bind()
     }
 
     private func bind() {
-        storageQueue
-            .subscribe(onNext: { [weak self] (asset, options) in
-                guard let this = self else {
-                    return
-                }
-
-                this.runSaveAction(with: asset, options: options)
-            })
-            .disposed(by: disposeBag)
+        saveOperation.subscribe(onNext: { [weak self] (asset, options) in
+            self?.runSaveOperation(asset: asset, options: options)
+        }).disposed(by: disposeBag)
     }
 
-    private func runSaveAction(with asset: KBAssetType, options: KBParameters) {
-        storageManager
-            .store(asset, writeOptions: options.writeOptions).subscribe(onCompleted: { [weak self] in
-                guard let this = self else {
-                    return
-                }
+    private func runSaveOperation(asset: KBAssetType, options: KBParameters) {
+        storageManager.store(asset, writeOptions: options.writeOptions).subscribe(onCompleted: {
 
-                this.logger.log(verbose: "Saved")
-            }) { [weak self] (error) in
-                guard let this = self else {
-                    return
-                }
+        }) { (error) in
 
-                this.logger.log(error: "Error \(error)")
-            }.disposed(by: disposeBag)
-    }
-
-    private func readRequest(for key: String) -> Single<KBAssetType> {
-        return Single.error(NSError())
-    }
-
-    // Is this even possible?
-    private func generateUUID(from string: String?) -> UUID? {
-        return nil
+        }.disposed(by: disposeBag)
     }
 }
 
@@ -147,39 +123,39 @@ extension KikBank: KikBankType {
 
     public func data(with request: URLRequest, options: KBParameters) -> Single<Data> {
         guard
-            let uuid = generateUUID(from: request.url?.absoluteString) // Rethink this
+            let identifier = request.url?.absoluteString.hashValue // Rethink this
             else {
                 return .error(KBError.badRequest)
         }
 
-        // Cache only request
-        if options.readOptions == .cache {
-            return storageManager
-                .fetch(uuid, readOptions: options.readOptions)
-                .flatMap({ (asset) -> Single<Data> in
-                    return .just(asset.data)
-                })
+        // Prepare the read operation
+        let readOperation = storageManager.fetch(identifier, readOptions: options.readOptions)
+
+        // Prepare the download operation
+        let downloadOperation = downloadManager.downloadData(with: request)
+
+        // Prepare the asset generation operation
+        let assetOperation = downloadOperation.map { (data) -> KBAssetType in
+            return KBAsset(identifier: identifier, data: data)
         }
 
-        // This is incomplete, still needs to check cache for value
-        //
-        //
-        
-        let download = downloadManager.downloadData(with: request)
+        // If needed, add action to caching queue
+        if options.writeOptions.contains(.memory) || options.writeOptions.contains(.disk) {
+            assetOperation.subscribe(onSuccess: { [weak self] (asset) in
+                self?.saveOperation.onNext((asset, options))
+            }).disposed(by: disposeBag)
+        }
 
-        // Write request
-        if options.writeOptions == .disk || options.writeOptions == .memory {
-            download.subscribe(onSuccess: { [weak self] (data) in
-                guard let this = self else {
-                    return
+        // If the read options don't include memory or disk reads, use the download instead
+        return readOperation
+            .catchError { (error) -> Single<KBAssetType> in
+                if !options.readOptions.contains(.network) {
+                    // We have no netowrk read, abort
+                    return .error(KBError.badRequest)
                 }
-
-                let asset = KBAsset(uuid: uuid, data: data)
-                this.storageQueue.onNext((asset, options))
+                return assetOperation
+            }.map({ (asset) -> Data in
+                return asset.data
             })
-            .disposed(by: disposeBag)
-        }
-
-        return download
     }
 }
