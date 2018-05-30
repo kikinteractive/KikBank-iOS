@@ -8,36 +8,36 @@
 import Foundation
 
 /// Cached and saved object which tracks data validity
-@objc public class KBAsset: NSObject, KBAssetType {
+public class KBAsset: NSObject, KBAssetType {
+
     private struct Constants {
-        static let uuidKey = "kbuuid"
-        static let dataKey = "kbdata"
-        static let expiryKey = "kbexpiry"
+        static let identifierKey = "kbIdentifier"
+        static let dataKey = "kbData"
+        static let expiryKey = "kbExpiry"
     }
 
     /// The unique identifer of the data request
-    public var key: String
+    public var identifier: Int
 
     /// The stored data
-    var data: Data
+    public var data: Data
 
     /// The date at which to invalidate the stored data
     public var expiryDate: Date?
 
-    @objc public init(uuid: String, data: Data) {
-        self.key = uuid
+    public init(identifier: Int, data: Data) {
+        self.identifier = identifier
         self.data = data
         super.init()
     }
 
     public required init?(coder aDecoder: NSCoder) {
         guard
-            let uuid = aDecoder.decodeObject(forKey: Constants.uuidKey) as? String,
             let data = aDecoder.decodeObject(forKey: Constants.dataKey) as? Data else {
                 return nil
         }
 
-        self.key = uuid
+        self.identifier = aDecoder.decodeInteger(forKey: Constants.identifierKey)
         self.data = data
 
         self.expiryDate = aDecoder.decodeObject(forKey: Constants.dataKey) as? Date
@@ -57,8 +57,9 @@ import Foundation
 }
 
 extension KBAsset: NSCoding {
+    
     public func encode(with aCoder: NSCoder) {
-        aCoder.encode(key, forKey: Constants.uuidKey)
+        aCoder.encode(identifier, forKey: Constants.identifierKey)
         aCoder.encode(data, forKey: Constants.dataKey)
         aCoder.encode(expiryDate, forKey: Constants.expiryKey)
     }

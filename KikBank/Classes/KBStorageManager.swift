@@ -7,41 +7,68 @@
 //
 
 import Foundation
+import RxSwift
 
-@objc public protocol KBStorageManagerType {
+enum KBStorageError: Error {
+    case deallocated
+    case badPath
+    case noWrite // Invalid write operation specified
+    case noRead // Invalid read operation specified
+    case notFound
+    case invalid
+    case generic(error: Error)
+}
+
+public protocol KBStorageManagerType {
 
     /// Store the provded data based on provided storage policy
     ///
     /// - Parameters:
-    ///   - key: The unique identifier of the asset
     ///   - asset: The asset to be stored
-    ///   - options: The write policy of the asset
-    func store(_ key: String, asset: KBAssetType, options: KBParameters)
+    ///   - writeOptions: The write policy of the asset
+    /// - Returns: A completable indicating the write operation finished
+    func store(_ asset: KBAssetType, writeOptions: KBWriteOtions) -> Completable
 
-    /// Get any valid data defined by the provided uuid
+
+    /// Get any valid data defined by the provided identifier
     ///
-    /// - Parameter key: The unique identifier of the asset
-    /// - Returns: Valid asset, if possible
-    func fetch(_ key: String) -> KBAssetType?
+    /// - Parameters
+    ///     - identifier: The unique identifier of the asset, Int hash value
+    ///     - readOptions: The read policy of the request
+    /// - Returns: An asset matching the key and read options, if availiable
+    func fetch(_ identifier: Int, readOptions: KBReadOptions) -> Single<KBAssetType>
 
     /// Reset the in memory storage
     ///
-    func clearMemoryStorage() -> Void
+    func clearMemoryStorage() -> Completable
 
     /// Resets the storage
-    /// Caution! This removes all stored content at the current content path
+    /// Caution! This removes everything stored at the current content path
     /// The storage manager may be using a shared resoure location
     ///
-    func clearDiskStorage() -> Void
+    func clearDiskStorage() -> Completable
+
+    /// The static logger
+    ///
+    var logger: KBStaticLoggerType.Type { get set }
 }
 
 /// Storage manager provides simple caching and disk storage solutions
-@objc public class KBStorageManager: NSObject {
+public class KBStorageManager {
 
-    var cachePathExtension: String
+    /// Custom path for content storage
+    private let cachePathExtension: String
 
     /// The in memory asset cache
-    private lazy var memoryCache = [String: KBAssetType]()
+    private lazy var memoryCache = [Int: KBAssetType]()
+
+    /// Delete operation queue
+    private lazy var deleteSubject = PublishSubject<KBAssetType>()
+    private lazy var disposeBag = DisposeBag()
+
+    private lazy var storageDispatchQueue = DispatchQueue(label: "kbStorageManager.storageDispatchQUeue", attributes: .concurrent)
+
+    public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
 
     /// Convenience accessor of the disk file location
     private lazy var contentURL: URL? = {
@@ -58,143 +85,371 @@ import Foundation
         }
     }()
     
-    @objc public init(pathExtension: String) {
+    public required init(pathExtension: String) {
         cachePathExtension = pathExtension
-        super.init()
+        bind()
     }
 
-    /// Checks for a stored asset matching the povided uuid
+    /// Attach all observables
+    private func bind() {
+        deleteSubject
+            .subscribe(onNext: { [weak self] (asset) in
+                guard let this = self else {
+                    return
+                }
+
+                this.runDeleteMemoryAction(with: asset)
+                this.runDeleteDiskAction(with: asset)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    /// Enqueues then runs an asset memory delete action
     ///
-    /// - Parameter uuid: The unique identifier of the asset
+    private func runDeleteMemoryAction(with asset: KBAssetType) {
+        deleteAssetFromMemory(asset)
+            .subscribe(onCompleted: { [weak self] in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(verbose: "Done")
+            }) { [weak self] (error) in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(error: "Error \(error)")
+            }
+            .disposed(by: disposeBag)
+    }
+
+    /// Enqueues then runs an asset disk delete action
+    ///
+    private func runDeleteDiskAction(with asset: KBAssetType) {
+        deleteAssetFromDisk(asset)
+            .subscribe(onCompleted: { [weak self] in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(verbose: "Done")
+            }) { [weak self] (error) in
+                guard let this = self else {
+                    return
+                }
+
+                this.logger.log(error: "Error \(error)")
+            }
+            .disposed(by: disposeBag)
+    }
+
+    /// Checks for a stored asset matching the povided identifier
+    ///
+    /// - Parameter key: The unique identifier of the asset
     /// - Returns: Valid asset, if possible
-    private func fetchContent(with key: String) -> KBAssetType? {
-        // Check in memory cache
-        if let asset = memoryCache[key]  {
-            print("KBStorageManager - Found memory - \(key)")
-            return validateAndReturn(asset)
+    private func fetchContent(with identifier: Int, readOptions: KBReadOptions) -> Single<KBAssetType> {
+        // Check for restricted read types
+        if readOptions == .network {
+            // Nothing to do
+            return Single.error(KBStorageError.noRead)
         }
 
-        // Check disk
-        if let asset = readAssetFomDisk(with: key) {
-            print("KBStorageManager - Found disk - \(key)")
-            return validateAndReturn(asset)
+        var readOperation: Single<KBAssetType>?
+
+        if readOptions == .memory {
+            // Only read from memory
+            readOperation = readAssetFromMemory(with: identifier)
+        } else if readOptions == .disk {
+            // Only read from disk
+            readOperation = readAssetFomDisk(with: identifier)
+        } else if readOptions.contains(.cache) || readOptions.contains(.any) {
+            // Read memory and then disk if needed
+            readOperation = readAssetFromMemory(with: identifier)
+                .catchError({ [weak self] (error) -> Single<KBAssetType> in
+                    guard let this = self else {
+                        return .error(KBStorageError.deallocated)
+                    }
+
+                    // Could not read from memory, check disk
+                    return this.readAssetFomDisk(with: identifier)
+                })
         }
 
-        print("KBStorageManager - No Record - \(key)")
+        guard let _readOperation = readOperation else {
+            return Single.error(KBStorageError.noRead)
+        }
 
-        // Nothin
-        return nil
+        // Return the selecte read operation, and run a validation check
+        return _readOperation
+            .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
+                guard let this = self else {
+                    return .error(KBStorageError.deallocated)
+                }
+
+                if !asset.isValid {
+                    // Our content is no longer valid, clear it
+                    this.deleteSubject.onNext(asset)
+                    // Nothing to return
+                    return .error(KBStorageError.invalid)
+                }
+
+                return .just(asset)
+            })
     }
 
-    /// Check if the provided asset has passed validation checks and should return asset
+    /// Read an asset defined by a unique idenentifier from in-memory cache
     ///
-    /// - Parameter asset: The asset to check for validity
-    /// - Returns: asset if it is valid
-    private func validateAndReturn(_ asset: KBAssetType) -> KBAssetType? {
-        if !asset.isValid {
-            // Asset has become invalid, remove references
-            memoryCache[asset.key] = nil
-            delete(asset)
-            return nil
-        }
+    /// - Parameter key: The unique identifier of the data
+    /// - Returns: An asset matching the provided key, if one exists
+    private func readAssetFromMemory(with identifier: Int) -> Single<KBAssetType> {
+        return Single
+            .create(subscribe: { [weak self] (single) -> Disposable in
+                guard let this = self else {
+                    single(.error(KBStorageError.deallocated))
+                    return Disposables.create()
+                }
 
-        return asset
+                // Read task
+                this.storageDispatchQueue.sync {
+                    guard let asset = this.memoryCache[identifier] else {
+                        single(.error(KBStorageError.notFound))
+                        return
+                    }
+
+                    this.logger.log(verbose: "KBStorageManager - Read - Memory - \(identifier)")
+
+                    single(.success(asset))
+                }
+
+                return Disposables.create {}
+            })
     }
 
-    /// Reads an asset defined by a uuid from disk if available
+    /// Reads an asset defined by a unique idenentifier from disk if available
     ///
-    /// - Parameter uuid: The unique identifier of the data
-    /// - Returns: An asset matching the provided uuid, if one exists
-    private func readAssetFomDisk(with key: String) -> KBAssetType? {
-        guard let pathURL = contentURL?.appendingPathComponent(key) else {
-            return nil
-        }
+    /// - Parameter key: The unique identifier of the data
+    /// - Returns: An asset matching the provided key, if one exists
+    private func readAssetFomDisk(with identifier: Int) -> Single<KBAssetType> {
+        return Single
+            .create(subscribe: { [weak self] (single) -> Disposable in
+                guard let this = self else {
+                    single(.error(KBStorageError.deallocated))
+                    return Disposables.create {}
+                }
 
-        return NSKeyedUnarchiver.unarchiveObject(withFile: pathURL.path) as? KBAssetType
+                // Read task
+                this.storageDispatchQueue.sync {
+                    guard let pathURL = this.contentURL?.appendingPathComponent(identifier.description) else {
+                        single(.error(KBStorageError.badPath))
+                        return
+                    }
+
+                    guard let unarchived = NSKeyedUnarchiver.unarchiveObject(withFile: pathURL.path) as? KBAssetType else {
+                        single(.error(KBStorageError.notFound))
+                        return
+                    }
+
+                    this.logger.log(verbose: "KBStorageManager - Read - Disk - \(identifier)")
+
+                    single(.success(unarchived))
+                }
+
+                return Disposables.create {}
+            })
+    }
+
+    /// Write the provided asset to memory
+    ///
+    /// - Parameter asset: The asset the be writted to memory
+    private func writeToMemory(_ asset: KBAssetType) -> Completable {
+        return Completable
+            .create(subscribe: { [weak self] (completable) -> Disposable in
+                guard let this = self else {
+                    completable(.error(KBStorageError.deallocated))
+                    return Disposables.create {}
+                }
+
+                // Mutating task
+                this.storageDispatchQueue.async(flags: .barrier) {
+                    this.logger.log(verbose: "KBStorageManager - Write - Memory - \(asset.identifier)")
+                    this.memoryCache[asset.identifier] = asset
+
+                    completable(.completed)
+                }
+
+                return Disposables.create {}
+            })
     }
 
     /// Write the provided asset to disk
     ///
     /// - Parameter asset: The asset to be written to disk
-    private func writeToDisk(_ asset: KBAssetType) {
+    private func writeToDisk(_ asset: KBAssetType) -> Completable {
+        return Completable
+            .create(subscribe: { [weak self] (completable) -> Disposable in
+                guard let this = self else {
+                    completable(.error(KBStorageError.deallocated))
+                    return Disposables.create {}
+                }
 
-        guard let baseURL = contentURL else {
-            return
-        }
+                guard let contentURL = this.contentURL else {
+                    completable(.error(KBStorageError.badPath))
+                    return Disposables.create {}
+                }
 
-        let pathURL = baseURL.appendingPathComponent(asset.key)
-        do {
-            if !FileManager.default.fileExists(atPath: baseURL.path) {
-                try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true, attributes: nil)
-            }
-            let data = NSKeyedArchiver.archivedData(withRootObject: asset)
-            try data.write(to: pathURL, options: .atomic)
-            print("KBStorageManager - Writing Record to Disk - \(asset.key)")
-        } catch {
-            print("KBStorageManager - Error Writing Record to Disk - \(error)")
-        }
+                // Mutating task
+                this.storageDispatchQueue.async(flags: .barrier) {
+                    let pathURL = contentURL.appendingPathComponent(asset.identifier.description)
+
+                    do {
+                        if !FileManager.default.fileExists(atPath: contentURL.path) {
+                            try FileManager.default.createDirectory(at: contentURL,
+                                                                    withIntermediateDirectories: true,
+                                                                    attributes: nil)
+                        }
+
+                        let data = NSKeyedArchiver.archivedData(withRootObject: asset)
+                        try data.write(to: pathURL, options: .atomic)
+
+                        this.logger.log(verbose: "KBStorageManager - Write - Disk - \(asset.identifier)")
+
+                        completable(.completed)
+
+                    } catch {
+                        this.logger.log(error: "KBStorageManager - Write - Disk - Error - \(error)")
+                        completable(.error(KBStorageError.generic(error: error)))
+                    }
+                }
+
+                return Disposables.create {}
+            })
     }
 
-    /// Deletes the provided asset
+    /// Deletes the provided asset from memory storageg
+    ///
+    /// - Parameter asset: The asset to be removed from memory
+    private func deleteAssetFromMemory(_ asset: KBAssetType) -> Completable {
+        return Completable
+            .create(subscribe: { [weak self] (completable) -> Disposable in
+                guard let this = self else {
+                    completable(.error(KBStorageError.deallocated))
+                    return Disposables.create {}
+                }
+
+                // Mutating task
+                this.storageDispatchQueue.async(flags: .barrier) {
+                    this.logger.log(verbose: "KBStorageManager - Delete - Memory - \(asset.identifier)")
+
+                    this.memoryCache[asset.identifier] = nil
+
+                    completable(.completed)
+                }
+
+                return Disposables.create {}
+            })
+    }
+
+    /// Deletes the provided asset from disk storageg
     ///
     /// - Parameter asset: The asset to be removed from disk
-    private func delete(_ asset: KBAssetType) {
-        guard let pathURL = contentURL?.appendingPathComponent(asset.key) else {
-            return
-        }
+    private func deleteAssetFromDisk(_ asset: KBAssetType) -> Completable {
+        return Completable
+            .create(subscribe: { [weak self] (completable) -> Disposable in
+                guard let this = self else {
+                    completable(.error(KBStorageError.deallocated))
+                    return Disposables.create {}
+                }
 
-        if FileManager.default.fileExists(atPath: pathURL.path) {
-            do {
-                try FileManager.default.removeItem(at: pathURL)
-                print("KBStorageManager - Deleting Record - \(asset.key)")
-            } catch {
-                print("KBStorageManager - Error Deleting Record - \(asset.key)")
-            }
-        }
+                guard let pathURL = this.contentURL?.appendingPathComponent(asset.identifier.description) else {
+                    completable(.error(KBStorageError.badPath))
+                    return Disposables.create {}
+                }
+
+                // Mutating task
+                this.storageDispatchQueue.async(flags: .barrier) {
+                    if FileManager.default.fileExists(atPath: pathURL.path) {
+                        do {
+                            try FileManager.default.removeItem(at: pathURL)
+                            this.logger.log(verbose: "KBStorageManager - Delete - Disk - \(asset.identifier)")
+                            completable(.completed)
+                        } catch {
+                            this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(asset.identifier)")
+                            completable(.error(KBStorageError.generic(error: error)))
+                        }
+                    } else {
+                        completable(.error(KBStorageError.notFound))
+                    }
+                }
+
+                return Disposables.create {}
+            })
     }
 }
 
 extension KBStorageManager: KBStorageManagerType {
-    
-    public func store(_ key: String, asset: KBAssetType, options: KBParameters) {
-        asset.expiryDate = options.expiryDate
-        
-        switch options.writePolicy {
-        case .disk:
-            print("KBStorageManager - Writing to Disk - \(asset.key)")
-            writeToDisk(asset)
-            fallthrough // Disk items are included in memory (for now?)
-        case .memory:
-            print("KBStorageManager - Writing to Memory - \(asset.key)")
-            memoryCache[asset.key] = asset
-        default:
-            break
-        }
-    }
 
-    public func fetch(_ key: String) -> KBAssetType? {
-        return fetchContent(with: key)
-    }
+    public func store(_ asset: KBAssetType, writeOptions: KBWriteOtions) -> Completable {
+        var completable = Completable.empty()
 
-    public func clearMemoryStorage() -> Void {
-        memoryCache = [String: KBAssetType]()
-        print("KBStorageManager - Cleared memory storage")
-    }
-
-    public func clearDiskStorage() -> Void {
-        guard let pathURL = contentURL else {
-            return
+        if writeOptions.contains(.disk) {
+            completable = completable.andThen(writeToDisk(asset))
         }
 
-        do {
-            let directoryContents = try FileManager.default.contentsOfDirectory(atPath: pathURL.path)
-            for path in directoryContents {
-                let fullPath = pathURL.appendingPathComponent(path)
-                try FileManager.default.removeItem(atPath: fullPath.path)
-            }
-            print("KBStorageManager - Cleared disk storage")
-        } catch {
-            print("KBStorageManager - Error clearing disk storage - \(error)")
+        if writeOptions.contains(.memory) {
+            completable = completable.andThen(writeToMemory(asset))
         }
+
+        return completable
+    }
+
+    public func fetch(_ identifier: Int, readOptions: KBReadOptions) -> Single<KBAssetType> {
+        return fetchContent(with: identifier, readOptions: readOptions)
+    }
+
+    public func clearMemoryStorage() -> Completable {
+        return Completable
+            .create(subscribe: { [weak self] (completable) -> Disposable in
+                guard let this = self else {
+                    completable(.error(KBStorageError.deallocated))
+                    return Disposables.create {}
+                }
+
+                this.memoryCache = [Int: KBAssetType]()
+                this.logger.log(verbose: "KBStorageManager - Delete - Memory - All")
+
+                completable(.completed)
+                return Disposables.create {}
+            })
+    }
+
+    public func clearDiskStorage() -> Completable {
+        return Completable
+            .create(subscribe: { [weak self] (completable) -> Disposable in
+                guard let this = self else {
+                    completable(.error(KBStorageError.deallocated))
+                    return Disposables.create {}
+                }
+
+                guard let pathURL = this.contentURL else {
+                    completable(.error(KBStorageError.badPath))
+                    return Disposables.create {}
+                }
+
+                do {
+                    let directoryContents = try FileManager.default.contentsOfDirectory(atPath: pathURL.path)
+                    for path in directoryContents {
+                        let fullPath = pathURL.appendingPathComponent(path)
+                        try FileManager.default.removeItem(atPath: fullPath.path)
+                    }
+                    this.logger.log(verbose: "KBStorageManager - Delete - Disk - All")
+                    completable(.completed)
+                } catch {
+                    this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(error)")
+                    completable(.error(KBStorageError.generic(error: error)))
+                }
+
+                return Disposables.create {}
+            })
     }
 }

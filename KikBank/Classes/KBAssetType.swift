@@ -7,6 +7,10 @@
 
 import Foundation
 
-@objc public protocol KBAssetType: KBExpirableEntityType {
-    var key: String { get }
+public protocol KBAssetType {
+    var identifier: Int { get }
+    var data: Data { get }
+
+    var expiryDate: Date? { get set }
+    var isValid: Bool { get }
 }
