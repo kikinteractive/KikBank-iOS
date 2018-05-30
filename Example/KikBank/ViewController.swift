@@ -13,7 +13,9 @@ import RxCocoa
 
 class ViewController: UIViewController {
 
-    private lazy var kikBank = KikBank()
+    private lazy var downloadManager = KBDownloadManager()
+    private lazy var storageManager = KBStorageManager(pathExtension: "kikBankExample")
+
     private lazy var disposeBag = DisposeBag()
 
     private lazy var imageView: UIImageView = {
@@ -33,21 +35,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let url = URL(string: "https://placekitten.com/g/300/300")!
 
-        let fetchPolicy = KBParameters()
-        fetchPolicy.writeOptions = .all
-        fetchPolicy.readOptions = .cache
-
-        kikBank
-            .data(with: url, options: fetchPolicy)
-            .map { (data) -> UIImage? in
-                return UIImage(data: data)
-            }
-            .asDriver(onErrorJustReturn: nil)
-            .asObservable()
-            .bind(to: imageView.rx.image)
-            .disposed(by: disposeBag)
     }
+
 }
 

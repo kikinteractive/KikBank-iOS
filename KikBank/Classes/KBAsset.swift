@@ -8,7 +8,7 @@
 import Foundation
 
 /// Cached and saved object which tracks data validity
-public class KBAsset: NSObject, KBAssetType {
+open class KBAsset: NSObject, KBAssetType {
 
     private struct Constants {
         static let identifierKey = "kbIdentifier"
