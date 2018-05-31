@@ -139,13 +139,6 @@ extension KikBank: KikBankType {
             return KBDataAsset(identifier: identifier, data: data)
         }
 
-        // If needed, add action to caching queue
-        if options.writeOption.contains(.memory) || options.writeOption.contains(.disk) {
-            assetOperation.subscribe(onSuccess: { [weak self] (asset) in
-                self?.saveOperation.onNext((asset, options))
-            }).disposed(by: disposeBag)
-        }
-
         // If the read options don't include memory or disk reads, use the download instead
         return readOperation
             .catchError { (error) -> Single<KBAssetType> in
@@ -153,10 +146,16 @@ extension KikBank: KikBankType {
                     // We have no network read, abort
                     return .error(KBError.badRequest)
                 }
+
                 return assetOperation.map({ (dataAsset) -> KBAssetType in
                     return dataAsset
                 })
             }.flatMap({ (asset) -> Single<Data> in
+                // If needed, add action to caching queue
+                if options.writeOption.contains(.memory) || options.writeOption.contains(.disk) {
+                    self.saveOperation.onNext((asset, options))
+                }
+
                 if let asset = asset as? KBDataAssetType {
                     return .just(asset.data)
                 }

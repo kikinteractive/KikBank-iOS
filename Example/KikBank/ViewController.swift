@@ -41,28 +41,31 @@ class ViewController: UIViewController {
         view.addSubview(imageView)
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
 
         let url = URL(string: "https://placekitten.com/g/300/300")!
-        let image = try! Data(contentsOf: url)
 
-        let imageAsset = DemoImageAsset(identifier: url.absoluteString.hashValue, data: image)
-
-        // Lets put this into memory
-        storageManager
-            .store(imageAsset, writeOption: .memory)
-            .subscribe(onCompleted: {
-                print("Saved")
-            }) { (error) in
-                print("Whoops - \(error)")
-        }
-        .disposed(by: disposeBag)
-
-        // So now the bank should be able to show it without a new request
         let options = KBParameters()
-        options.readOption = .memory
-        options.writeOption = .none
+        options.readOption = .any
+        options.writeOption = .memory
+
+        kikBank
+            .data(with: url, options: options)
+            .map { (data) -> UIImage? in
+                return UIImage(data: data)
+            }
+            .asObservable()
+            .bind(to: imageView.rx.image)
+            .disposed(by: disposeBag)
+
+        print("Sleep 1")
+        sleep(3)
+
+        imageView.image = nil
+
+        print("Sleep 2")
+        sleep(3)
 
         kikBank
             .data(with: url, options: options)
@@ -73,6 +76,5 @@ class ViewController: UIViewController {
             .bind(to: imageView.rx.image)
             .disposed(by: disposeBag)
     }
-
 }
 
