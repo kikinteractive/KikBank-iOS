@@ -50,7 +50,7 @@ class KBParametersTests: XCTestCase {
 
     // All write should include all options
     func testAllWriteOption() {
-        let writeOption = KBWriteOtions.all
+        let writeOption = KBWriteOptions.all
 
         XCTAssertTrue(writeOption.contains(.all))
         XCTAssertTrue(writeOption.contains(.memory))

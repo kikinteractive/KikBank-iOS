@@ -17,7 +17,7 @@
 		AD215C93202C039B009F77A8 /* KBAssetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD215C91202C02FB009F77A8 /* KBAssetTests.swift */; };
 		AD54D2B520A545640089BC4C /* KBStorageManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD54D2B320A545430089BC4C /* KBStorageManagerTests.swift */; };
 		AD54D2B820A622470089BC4C /* KBParametersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD54D2B620A622410089BC4C /* KBParametersTests.swift */; };
-		ADFF738720BF39E600A5541E /* CustomAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADFF738620BF39E600A5541E /* CustomAsset.swift */; };
+		ADFF738720BF39E600A5541E /* DemoImageAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADFF738620BF39E600A5541E /* DemoImageAsset.swift */; };
 		B3BFCA0E3520A8B3355E30FE /* Pods_KikBank_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 92120D938304584D5B16E88D /* Pods_KikBank_Tests.framework */; };
 		E7AED447F9012C22B3406C67 /* Pods_KikBank_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A9FAB7D39E95E769BE38EFE /* Pods_KikBank_Example.framework */; };
 /* End PBXBuildFile section */
@@ -55,7 +55,7 @@
 		AD3C33FC202E037C0001D4EA /* KikBank_Example-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "KikBank_Example-Bridging-Header.h"; sourceTree = "<group>"; };
 		AD54D2B320A545430089BC4C /* KBStorageManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBStorageManagerTests.swift; sourceTree = "<group>"; };
 		AD54D2B620A622410089BC4C /* KBParametersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KBParametersTests.swift; sourceTree = "<group>"; };
-		ADFF738620BF39E600A5541E /* CustomAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomAsset.swift; sourceTree = "<group>"; };
+		ADFF738620BF39E600A5541E /* DemoImageAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoImageAsset.swift; sourceTree = "<group>"; };
 		B5A3F0682D706E80ED58713F /* Pods-KikBank_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KikBank_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-KikBank_Tests/Pods-KikBank_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		C919D870A1DC4D167D0520EC /* KikBank.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = KikBank.podspec; path = ../KikBank.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 /* End PBXFileReference section */
@@ -118,7 +118,7 @@
 			children = (
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
-				ADFF738620BF39E600A5541E /* CustomAsset.swift */,
+				ADFF738620BF39E600A5541E /* DemoImageAsset.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
 				607FACDE1AFB9204008FA782 /* LaunchScreen.xib */,
@@ -398,7 +398,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ADFF738720BF39E600A5541E /* CustomAsset.swift in Sources */,
+				ADFF738720BF39E600A5541E /* DemoImageAsset.swift in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
 			);

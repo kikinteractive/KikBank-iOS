@@ -25,6 +25,7 @@ public struct KBReadOptions: OptionSet {
 
     public static let cache: KBReadOptions = [.disk, .memory]
     public static let any: KBReadOptions = [.disk, .memory, .network]
+    public static let none: KBReadOptions = []
 
     public init(rawValue: Int) {
         self.rawValue = rawValue
@@ -38,13 +39,14 @@ public struct KBReadOptions: OptionSet {
  - disk: Write item to disk, saved between sessions
  - all: Write item to memory and to disk storage
  */
-public struct KBWriteOtions: OptionSet {
+public struct KBWriteOptions: OptionSet {
     public let rawValue: Int
 
-    public static let memory = KBWriteOtions(rawValue: 1 << 0)
-    public static let disk =   KBWriteOtions(rawValue: 1 << 1)
+    public static let memory = KBWriteOptions(rawValue: 1 << 0)
+    public static let disk =   KBWriteOptions(rawValue: 1 << 1)
 
-    public static let all: KBWriteOtions = [.memory, .disk]
+    public static let all: KBWriteOptions = [.memory, .disk]
+    public static let none: KBWriteOptions = []
 
     public init(rawValue: Int) {
         self.rawValue = rawValue
@@ -58,5 +60,5 @@ public class KBParameters: NSObject {
     public var readOptions: KBReadOptions = .any
 
     // The data write type
-    public var writeOptions: KBWriteOtions = .memory
+    public var writeOptions: KBWriteOptions = .memory
 }

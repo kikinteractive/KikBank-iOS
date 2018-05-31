@@ -27,7 +27,7 @@ public protocol KBStorageManagerType {
     ///   - asset: The asset to be stored
     ///   - writeOptions: The write policy of the asset
     /// - Returns: A completable indicating the write operation finished
-    func store(_ asset: KBAssetType, writeOptions: KBWriteOtions) -> Completable
+    func store(_ asset: KBAssetType, writeOptions: KBWriteOptions) -> Completable
 
 
     /// Get any valid data defined by the provided identifier
@@ -389,7 +389,7 @@ public class KBStorageManager {
 
 extension KBStorageManager: KBStorageManagerType {
 
-    public func store(_ asset: KBAssetType, writeOptions: KBWriteOtions) -> Completable {
+    public func store(_ asset: KBAssetType, writeOptions: KBWriteOptions) -> Completable {
         var completable = Completable.empty()
 
         if writeOptions.contains(.disk) {

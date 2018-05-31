@@ -13,8 +13,9 @@ import RxCocoa
 
 class ViewController: UIViewController {
 
-    private lazy var downloadManager = KBDownloadManager()
-    private lazy var storageManager = KBStorageManager(pathExtension: "kikBankExample")
+    private var storageManager: KBStorageManagerType
+    private var downloadManager: KBDownloadManagerType
+    private var kikBank: KikBankType
 
     private lazy var disposeBag = DisposeBag()
 
@@ -26,6 +27,14 @@ class ViewController: UIViewController {
         return imageView
     }()
 
+    
+    required init?(coder aDecoder: NSCoder) {
+        self.storageManager = KBStorageManager(pathExtension: "kbDemo")
+        self.downloadManager = KBDownloadManager()
+        self.kikBank = KikBank(storageManager: self.storageManager, downloadManager: self.downloadManager)
+        super.init(coder: aDecoder)
+    }
+
     override func loadView() {
         super.loadView()
 
@@ -35,7 +44,34 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        let url = URL(string: "https://placekitten.com/g/300/300")!
+        let image = try! Data(contentsOf: url)
 
+        let imageAsset = DemoImageAsset(identifier: url.absoluteString.hashValue, data: image)
+
+        // Lets put this into memory
+        storageManager
+            .store(imageAsset, writeOptions: .memory)
+            .subscribe(onCompleted: {
+                print("Saved")
+            }) { (error) in
+                print("Whoops - \(error)")
+        }
+        .disposed(by: disposeBag)
+
+        // So now the bank should be able to show it without a new request
+        let options = KBParameters()
+        options.readOptions = .memory
+        options.writeOptions = []
+
+        kikBank
+            .data(with: url, options: options)
+            .map { (data) -> UIImage? in
+                return UIImage(data: data)
+            }
+            .asObservable()
+            .bind(to: imageView.rx.image)
+            .disposed(by: disposeBag)
     }
 
 }
