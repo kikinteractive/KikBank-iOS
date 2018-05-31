@@ -97,7 +97,7 @@ public class KikBank {
     }
 
     private func runSaveOperation(asset: KBAssetType, options: KBParameters) {
-        storageManager.store(asset, writeOptions: options.writeOptions).subscribe(onCompleted: {
+        storageManager.store(asset, writeOption: options.writeOption).subscribe(onCompleted: {
 
         }) { (error) in
 
@@ -129,7 +129,7 @@ extension KikBank: KikBankType {
         }
 
         // Prepare the read operation
-        let readOperation = storageManager.fetch(identifier, readOptions: options.readOptions)
+        let readOperation = storageManager.fetch(identifier, readOption: options.readOption)
 
         // Prepare the download operation
         let downloadOperation = downloadManager.downloadData(with: request)
@@ -140,7 +140,7 @@ extension KikBank: KikBankType {
         }
 
         // If needed, add action to caching queue
-        if options.writeOptions.contains(.memory) || options.writeOptions.contains(.disk) {
+        if options.writeOption.contains(.memory) || options.writeOption.contains(.disk) {
             assetOperation.subscribe(onSuccess: { [weak self] (asset) in
                 self?.saveOperation.onNext((asset, options))
             }).disposed(by: disposeBag)
@@ -149,8 +149,8 @@ extension KikBank: KikBankType {
         // If the read options don't include memory or disk reads, use the download instead
         return readOperation
             .catchError { (error) -> Single<KBAssetType> in
-                if !options.readOptions.contains(.network) {
-                    // We have no netowrk read, abort
+                if !options.readOption.contains(.network) {
+                    // We have no network read, abort
                     return .error(KBError.badRequest)
                 }
                 return assetOperation.map({ (dataAsset) -> KBAssetType in

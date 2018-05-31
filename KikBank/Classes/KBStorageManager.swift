@@ -27,7 +27,7 @@ public protocol KBStorageManagerType {
     ///   - asset: The asset to be stored
     ///   - writeOptions: The write policy of the asset
     /// - Returns: A completable indicating the write operation finished
-    func store(_ asset: KBAssetType, writeOptions: KBWriteOptions) -> Completable
+    func store(_ asset: KBAssetType, writeOption: KBWriteOption) -> Completable
 
 
     /// Get any valid data defined by the provided identifier
@@ -36,7 +36,7 @@ public protocol KBStorageManagerType {
     ///     - identifier: The unique identifier of the asset, Int hash value
     ///     - readOptions: The read policy of the request
     /// - Returns: An asset matching the key and read options, if availiable
-    func fetch(_ identifier: Int, readOptions: KBReadOptions) -> Single<KBAssetType>
+    func fetch(_ identifier: Int, readOption: KBReadOption) -> Single<KBAssetType>
 
     /// Reset the in memory storage
     ///
@@ -148,22 +148,22 @@ public class KBStorageManager {
     ///
     /// - Parameter key: The unique identifier of the asset
     /// - Returns: Valid asset, if possible
-    private func fetchContent(with identifier: Int, readOptions: KBReadOptions) -> Single<KBAssetType> {
+    private func fetchContent(with identifier: Int, readOption: KBReadOption) -> Single<KBAssetType> {
         // Check for restricted read types
-        if readOptions == .network {
+        if readOption == .network {
             // Nothing to do
             return Single.error(KBStorageError.noRead)
         }
 
         var readOperation: Single<KBAssetType>?
 
-        if readOptions == .memory {
+        if readOption == .memory {
             // Only read from memory
             readOperation = readAssetFromMemory(with: identifier)
-        } else if readOptions == .disk {
+        } else if readOption == .disk {
             // Only read from disk
             readOperation = readAssetFomDisk(with: identifier)
-        } else if readOptions.contains(.cache) || readOptions.contains(.any) {
+        } else if readOption.contains(.cache) || readOption.contains(.any) {
             // Read memory and then disk if needed
             readOperation = readAssetFromMemory(with: identifier)
                 .catchError({ [weak self] (error) -> Single<KBAssetType> in
@@ -389,22 +389,22 @@ public class KBStorageManager {
 
 extension KBStorageManager: KBStorageManagerType {
 
-    public func store(_ asset: KBAssetType, writeOptions: KBWriteOptions) -> Completable {
+    public func store(_ asset: KBAssetType, writeOption: KBWriteOption) -> Completable {
         var completable = Completable.empty()
 
-        if writeOptions.contains(.disk) {
+        if writeOption.contains(.disk) {
             completable = completable.andThen(writeToDisk(asset))
         }
 
-        if writeOptions.contains(.memory) {
+        if writeOption.contains(.memory) {
             completable = completable.andThen(writeToMemory(asset))
         }
 
         return completable
     }
 
-    public func fetch(_ identifier: Int, readOptions: KBReadOptions) -> Single<KBAssetType> {
-        return fetchContent(with: identifier, readOptions: readOptions)
+    public func fetch(_ identifier: Int, readOption: KBReadOption) -> Single<KBAssetType> {
+        return fetchContent(with: identifier, readOption: readOption)
     }
 
     public func clearMemoryStorage() -> Completable {

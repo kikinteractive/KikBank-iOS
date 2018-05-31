@@ -51,7 +51,7 @@ class ViewController: UIViewController {
 
         // Lets put this into memory
         storageManager
-            .store(imageAsset, writeOptions: .memory)
+            .store(imageAsset, writeOption: .memory)
             .subscribe(onCompleted: {
                 print("Saved")
             }) { (error) in
@@ -61,8 +61,8 @@ class ViewController: UIViewController {
 
         // So now the bank should be able to show it without a new request
         let options = KBParameters()
-        options.readOptions = .memory
-        options.writeOptions = []
+        options.readOption = .memory
+        options.writeOption = .none
 
         kikBank
             .data(with: url, options: options)
