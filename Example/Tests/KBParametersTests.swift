@@ -16,9 +16,9 @@ class KBParametersTests: XCTestCase {
 
     // Disk read should only include disk
     func testDiskReadOptions() {
-        let readOption = KBReadOptions.disk
+        let readOption = KBReadOption.disk
 
-        XCTAssertEqual(readOption, KBReadOptions.disk)
+        XCTAssertEqual(readOption, KBReadOption.disk)
         XCTAssertTrue(readOption.contains(.disk))
 
         XCTAssertFalse(readOption.contains(.memory))
@@ -27,7 +27,7 @@ class KBParametersTests: XCTestCase {
 
     // Cache read should include only disk and memory
     func testCacheReadOption() {
-        let readOption = KBReadOptions.cache
+        let readOption = KBReadOption.cache
 
         XCTAssertTrue(readOption.contains(.cache))
         XCTAssertTrue(readOption.contains(.memory))
@@ -38,7 +38,7 @@ class KBParametersTests: XCTestCase {
 
     // Any read should include all options
     func testAnyReadOption() {
-        let readOption = KBReadOptions.any
+        let readOption = KBReadOption.any
 
         XCTAssertTrue(readOption.contains(.any))
         XCTAssertTrue(readOption.contains(.memory))
@@ -50,9 +50,9 @@ class KBParametersTests: XCTestCase {
 
     // All write should include all options
     func testAllWriteOption() {
-        let writeOption = KBWriteOtions.all
+        let writeOption = KBWriteOption.any
 
-        XCTAssertTrue(writeOption.contains(.all))
+        XCTAssertTrue(writeOption.contains(.any))
         XCTAssertTrue(writeOption.contains(.memory))
         XCTAssertTrue(writeOption.contains(.disk))
     }

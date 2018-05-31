@@ -48,11 +48,11 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write to memory
     func testMemoryWrite() {
         let someData = "text".data(using: .utf8)!
-        let asset = KBAsset(identifier: "testMemoryWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testMemoryWrite".hashValue, data: someData)
 
         let expect = expectation(description: "testMemoryWrite")
         storageManager
-            .store(asset, writeOptions: .memory)
+            .store(asset, writeOption: .memory)
             .subscribe(onCompleted: {
                 expect.fulfill()
             }) { (error) in
@@ -66,11 +66,11 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write to disk
     func testDiskWrite() {
         let someData = "text".data(using: .utf8)!
-        let asset = KBAsset(identifier: "testDiskWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testDiskWrite".hashValue, data: someData)
 
         let expect = expectation(description: "testDiskWrite")
         storageManager
-            .store(asset, writeOptions: .disk)
+            .store(asset, writeOption: .disk)
             .subscribe(onCompleted: {
                 expect.fulfill()
             }) { (error) in
@@ -85,11 +85,11 @@ class KBStorageManagerTests: XCTestCase {
     func testMemoryRead() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testMemoryRead".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testMemoryWrite")
         storageManager
-            .store(asset, writeOptions: .memory)
+            .store(asset, writeOption: .memory)
             .subscribe(onCompleted: {
                 writeExpectation.fulfill()
             }) { (error) in
@@ -99,10 +99,10 @@ class KBStorageManagerTests: XCTestCase {
 
         let readExpectation = expectation(description: "testMemoryRead")
         storageManager
-            .fetch(identifier, readOptions: .memory)
+            .fetch(identifier, readOption: .memory)
             .subscribe(onSuccess: { (asset) in
                 XCTAssertEqual(asset.identifier, identifier)
-                let dataString = String.init(data: asset.data, encoding: .utf8)
+                let dataString = String.init(data: (asset as! KBDataAssetType).data, encoding: .utf8)
                 XCTAssertEqual(dataString, "text")
                 readExpectation.fulfill()
             }) { (error) in
@@ -117,11 +117,11 @@ class KBStorageManagerTests: XCTestCase {
     func testDiskRead() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testDiskRead".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testDiskWrite")
         storageManager
-            .store(asset, writeOptions: .disk)
+            .store(asset, writeOption: .disk)
             .subscribe(onCompleted: {
                 writeExpectation.fulfill()
             }) { (error) in
@@ -131,10 +131,10 @@ class KBStorageManagerTests: XCTestCase {
 
         let readExpectation = expectation(description: "testDiskRead")
         storageManager
-            .fetch(identifier, readOptions: .disk)
+            .fetch(identifier, readOption: .disk)
             .subscribe(onSuccess: { (asset) in
                 XCTAssertEqual(asset.identifier, identifier)
-                let dataString = String.init(data: asset.data, encoding: .utf8)
+                let dataString = String.init(data: (asset as! KBDataAssetType).data, encoding: .utf8)
                 XCTAssertEqual(dataString, "text")
                 readExpectation.fulfill()
             }) { (error) in
@@ -148,11 +148,11 @@ class KBStorageManagerTests: XCTestCase {
     func testClearMemory() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testClearMemory".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testClearMemoryWrite")
         storageManager
-            .store(asset, writeOptions: .memory)
+            .store(asset, writeOption: .memory)
             .subscribe(onCompleted: {
                 writeExpectation.fulfill()
             }) { (error) in
@@ -162,7 +162,7 @@ class KBStorageManagerTests: XCTestCase {
 
         let readExpectation = expectation(description: "testClearMemoryRead")
         storageManager
-            .fetch(identifier, readOptions: .memory)
+            .fetch(identifier, readOption: .memory)
             .subscribe(onSuccess: { (asset) in
                 XCTAssertEqual(asset.identifier, identifier)
                 readExpectation.fulfill()
@@ -183,7 +183,7 @@ class KBStorageManagerTests: XCTestCase {
 
         let errorExpectation = expectation(description: "testClearMemoryEmpty")
         storageManager
-            .fetch(identifier, readOptions: .memory)
+            .fetch(identifier, readOption: .memory)
             .subscribe(onSuccess: { (asset) in
                 XCTFail("Asset should be deleted")
             }) { (error) in
@@ -198,11 +198,11 @@ class KBStorageManagerTests: XCTestCase {
     func testClearDisk() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testClearDisk".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testClearDiskWrite")
         storageManager
-            .store(asset, writeOptions: .disk)
+            .store(asset, writeOption: .disk)
             .subscribe(onCompleted: {
                 writeExpectation.fulfill()
             }) { (error) in
@@ -212,7 +212,7 @@ class KBStorageManagerTests: XCTestCase {
 
         let readExpectation = expectation(description: "testClearDiskRead")
         storageManager
-            .fetch(identifier, readOptions: .disk)
+            .fetch(identifier, readOption: .disk)
             .subscribe(onSuccess: { (asset) in
                 XCTAssertEqual(asset.identifier, identifier)
                 readExpectation.fulfill()
@@ -233,7 +233,7 @@ class KBStorageManagerTests: XCTestCase {
 
         let errorExpectation = expectation(description: "testClearDiskEmpty")
         storageManager
-            .fetch(identifier, readOptions: .disk)
+            .fetch(identifier, readOption: .disk)
             .subscribe(onSuccess: { (asset) in
                 XCTFail("Asset should be deleted")
             }) { (error) in
@@ -248,14 +248,14 @@ class KBStorageManagerTests: XCTestCase {
     func testAssetExpiry() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testAssetExpiry".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         // Set the expiry date to be in half a second
         asset.expiryDate = Date(timeIntervalSinceNow: 0.5)
 
         let writeExpectation = expectation(description: "testAssetExpiryWrite")
         storageManager
-            .store(asset, writeOptions: .memory)
+            .store(asset, writeOption: .memory)
             .subscribe(onCompleted: {
                 writeExpectation.fulfill()
             }) { (error) in
@@ -265,7 +265,7 @@ class KBStorageManagerTests: XCTestCase {
         // First read should be valid
         let readExpectation = expectation(description: "testAssetExpiryFirstRead")
         storageManager
-            .fetch(identifier, readOptions: .memory)
+            .fetch(identifier, readOption: .memory)
             .subscribe(onSuccess: { (asset) in
                 readExpectation.fulfill()
             }) { (error) in
@@ -278,7 +278,7 @@ class KBStorageManagerTests: XCTestCase {
         // Second read should return invalid
         let errorExpectation = expectation(description: "testAssetExpirySecondRead")
         storageManager
-            .fetch(identifier, readOptions: .memory)
+            .fetch(identifier, readOption: .memory)
             .subscribe(onSuccess: { (asset) in
                 XCTFail("Asset should be deleted")
             }) { (error) in
