@@ -135,8 +135,8 @@ extension KikBank: KikBankType {
         let downloadOperation = downloadManager.downloadData(with: request)
 
         // Prepare the asset generation operation
-        let assetOperation = downloadOperation.map { (data) -> KBAssetType in
-            return KBAsset(identifier: identifier, data: data)
+        let assetOperation = downloadOperation.map { (data) -> KBDataAssetType in
+            return KBDataAsset(identifier: identifier, data: data)
         }
 
         // If needed, add action to caching queue
@@ -153,9 +153,15 @@ extension KikBank: KikBankType {
                     // We have no netowrk read, abort
                     return .error(KBError.badRequest)
                 }
-                return assetOperation
-            }.map({ (asset) -> Data in
-                return asset.data
+                return assetOperation.map({ (dataAsset) -> KBAssetType in
+                    return dataAsset
+                })
+            }.flatMap({ (asset) -> Single<Data> in
+                if let asset = asset as? KBDataAssetType {
+                    return .just(asset.data)
+                }
+
+                return .error(KBError.badRequest)
             })
     }
 }

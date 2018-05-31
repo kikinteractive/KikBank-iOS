@@ -9,7 +9,7 @@
 import Foundation
 import KikBank
 
-class ImageAsset: KBAsset {
+class ImageAsset: KBDataAsset {
 
     var image: UIImage? {
         return UIImage(data: data)

@@ -177,10 +177,10 @@ public class KBStorageManager {
         }
 
         guard let _readOperation = readOperation else {
-            return Single.error(KBStorageError.noRead)
+            return .error(KBStorageError.noRead)
         }
 
-        // Return the selecte read operation, and run a validation check
+        // Return the selected read operation, and run a validation check
         return _readOperation
             .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
                 guard let this = self else {
@@ -222,7 +222,7 @@ public class KBStorageManager {
                     single(.success(asset))
                 }
 
-                return Disposables.create {}
+                return Disposables.create()
             })
     }
 
@@ -235,7 +235,7 @@ public class KBStorageManager {
             .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
                     single(.error(KBStorageError.deallocated))
-                    return Disposables.create {}
+                    return Disposables.create()
                 }
 
                 // Read task
@@ -255,7 +255,7 @@ public class KBStorageManager {
                     single(.success(unarchived))
                 }
 
-                return Disposables.create {}
+                return Disposables.create()
             })
     }
 
@@ -267,7 +267,7 @@ public class KBStorageManager {
             .create(subscribe: { [weak self] (completable) -> Disposable in
                 guard let this = self else {
                     completable(.error(KBStorageError.deallocated))
-                    return Disposables.create {}
+                    return Disposables.create()
                 }
 
                 // Mutating task
@@ -278,7 +278,7 @@ public class KBStorageManager {
                     completable(.completed)
                 }
 
-                return Disposables.create {}
+                return Disposables.create()
             })
     }
 
@@ -293,13 +293,13 @@ public class KBStorageManager {
                     return Disposables.create {}
                 }
 
-                guard let contentURL = this.contentURL else {
-                    completable(.error(KBStorageError.badPath))
-                    return Disposables.create {}
-                }
-
                 // Mutating task
                 this.storageDispatchQueue.async(flags: .barrier) {
+                    guard let contentURL = this.contentURL else {
+                        completable(.error(KBStorageError.badPath))
+                        return
+                    }
+
                     let pathURL = contentURL.appendingPathComponent(asset.identifier.description)
 
                     do {
@@ -322,7 +322,7 @@ public class KBStorageManager {
                     }
                 }
 
-                return Disposables.create {}
+                return Disposables.create()
             })
     }
 
@@ -334,7 +334,7 @@ public class KBStorageManager {
             .create(subscribe: { [weak self] (completable) -> Disposable in
                 guard let this = self else {
                     completable(.error(KBStorageError.deallocated))
-                    return Disposables.create {}
+                    return Disposables.create()
                 }
 
                 // Mutating task
@@ -346,7 +346,7 @@ public class KBStorageManager {
                     completable(.completed)
                 }
 
-                return Disposables.create {}
+                return Disposables.create()
             })
     }
 
@@ -358,16 +358,16 @@ public class KBStorageManager {
             .create(subscribe: { [weak self] (completable) -> Disposable in
                 guard let this = self else {
                     completable(.error(KBStorageError.deallocated))
-                    return Disposables.create {}
-                }
-
-                guard let pathURL = this.contentURL?.appendingPathComponent(asset.identifier.description) else {
-                    completable(.error(KBStorageError.badPath))
-                    return Disposables.create {}
+                    return Disposables.create()
                 }
 
                 // Mutating task
                 this.storageDispatchQueue.async(flags: .barrier) {
+                    guard let pathURL = this.contentURL?.appendingPathComponent(asset.identifier.description) else {
+                        completable(.error(KBStorageError.badPath))
+                        return
+                    }
+
                     if FileManager.default.fileExists(atPath: pathURL.path) {
                         do {
                             try FileManager.default.removeItem(at: pathURL)
@@ -382,7 +382,7 @@ public class KBStorageManager {
                     }
                 }
 
-                return Disposables.create {}
+                return Disposables.create()
             })
     }
 }
@@ -412,14 +412,18 @@ extension KBStorageManager: KBStorageManagerType {
             .create(subscribe: { [weak self] (completable) -> Disposable in
                 guard let this = self else {
                     completable(.error(KBStorageError.deallocated))
-                    return Disposables.create {}
+                    return Disposables.create()
                 }
 
-                this.memoryCache = [Int: KBAssetType]()
-                this.logger.log(verbose: "KBStorageManager - Delete - Memory - All")
+                // Mutating task
+                this.storageDispatchQueue.async(flags: .barrier) {
+                    this.memoryCache = [Int: KBAssetType]()
+                    this.logger.log(verbose: "KBStorageManager - Delete - Memory - All")
 
-                completable(.completed)
-                return Disposables.create {}
+                    completable(.completed)
+                }
+
+                return Disposables.create()
             })
     }
 
@@ -428,28 +432,31 @@ extension KBStorageManager: KBStorageManagerType {
             .create(subscribe: { [weak self] (completable) -> Disposable in
                 guard let this = self else {
                     completable(.error(KBStorageError.deallocated))
-                    return Disposables.create {}
+                    return Disposables.create()
                 }
 
-                guard let pathURL = this.contentURL else {
-                    completable(.error(KBStorageError.badPath))
-                    return Disposables.create {}
-                }
-
-                do {
-                    let directoryContents = try FileManager.default.contentsOfDirectory(atPath: pathURL.path)
-                    for path in directoryContents {
-                        let fullPath = pathURL.appendingPathComponent(path)
-                        try FileManager.default.removeItem(atPath: fullPath.path)
+                // Mutating task
+                this.storageDispatchQueue.async(flags: .barrier) {
+                    guard let pathURL = this.contentURL else {
+                        completable(.error(KBStorageError.badPath))
+                        return
                     }
-                    this.logger.log(verbose: "KBStorageManager - Delete - Disk - All")
-                    completable(.completed)
-                } catch {
-                    this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(error)")
-                    completable(.error(KBStorageError.generic(error: error)))
+
+                    do {
+                        let directoryContents = try FileManager.default.contentsOfDirectory(atPath: pathURL.path)
+                        for path in directoryContents {
+                            let fullPath = pathURL.appendingPathComponent(path)
+                            try FileManager.default.removeItem(atPath: fullPath.path)
+                        }
+                        this.logger.log(verbose: "KBStorageManager - Delete - Disk - All")
+                        completable(.completed)
+                    } catch {
+                        this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(error)")
+                        completable(.error(KBStorageError.generic(error: error)))
+                    }
                 }
 
-                return Disposables.create {}
+                return Disposables.create()
             })
     }
 }

@@ -48,7 +48,7 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write to memory
     func testMemoryWrite() {
         let someData = "text".data(using: .utf8)!
-        let asset = KBAsset(identifier: "testMemoryWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testMemoryWrite".hashValue, data: someData)
 
         let expect = expectation(description: "testMemoryWrite")
         storageManager
@@ -66,7 +66,7 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write to disk
     func testDiskWrite() {
         let someData = "text".data(using: .utf8)!
-        let asset = KBAsset(identifier: "testDiskWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testDiskWrite".hashValue, data: someData)
 
         let expect = expectation(description: "testDiskWrite")
         storageManager
@@ -85,7 +85,7 @@ class KBStorageManagerTests: XCTestCase {
     func testMemoryRead() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testMemoryRead".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testMemoryWrite")
         storageManager
@@ -102,7 +102,7 @@ class KBStorageManagerTests: XCTestCase {
             .fetch(identifier, readOptions: .memory)
             .subscribe(onSuccess: { (asset) in
                 XCTAssertEqual(asset.identifier, identifier)
-                let dataString = String.init(data: asset.data, encoding: .utf8)
+                let dataString = String.init(data: (asset as! KBDataAssetType).data, encoding: .utf8)
                 XCTAssertEqual(dataString, "text")
                 readExpectation.fulfill()
             }) { (error) in
@@ -117,7 +117,7 @@ class KBStorageManagerTests: XCTestCase {
     func testDiskRead() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testDiskRead".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testDiskWrite")
         storageManager
@@ -134,7 +134,7 @@ class KBStorageManagerTests: XCTestCase {
             .fetch(identifier, readOptions: .disk)
             .subscribe(onSuccess: { (asset) in
                 XCTAssertEqual(asset.identifier, identifier)
-                let dataString = String.init(data: asset.data, encoding: .utf8)
+                let dataString = String.init(data: (asset as! KBDataAssetType).data, encoding: .utf8)
                 XCTAssertEqual(dataString, "text")
                 readExpectation.fulfill()
             }) { (error) in
@@ -148,7 +148,7 @@ class KBStorageManagerTests: XCTestCase {
     func testClearMemory() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testClearMemory".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testClearMemoryWrite")
         storageManager
@@ -198,7 +198,7 @@ class KBStorageManagerTests: XCTestCase {
     func testClearDisk() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testClearDisk".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testClearDiskWrite")
         storageManager
@@ -248,7 +248,7 @@ class KBStorageManagerTests: XCTestCase {
     func testAssetExpiry() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testAssetExpiry".hashValue
-        let asset = KBAsset(identifier: identifier, data: someData)
+        let asset = KBDataAsset(identifier: identifier, data: someData)
 
         // Set the expiry date to be in half a second
         asset.expiryDate = Date(timeIntervalSinceNow: 0.5)
