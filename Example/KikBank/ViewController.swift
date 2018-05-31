@@ -46,12 +46,12 @@ class ViewController: UIViewController {
 
         let url = URL(string: "https://placekitten.com/g/300/300")!
 
-        let options = KBParameters()
-        options.readOption = .any
-        options.writeOption = .memory
+        let options1 = KBParameters()
+        options1.readOption = .network
+        options1.writeOption = .memory
 
         kikBank
-            .data(with: url, options: options)
+            .data(with: url, options: options1)
             .map { (data) -> UIImage? in
                 return UIImage(data: data)
             }
@@ -67,8 +67,12 @@ class ViewController: UIViewController {
         print("Sleep 2")
         sleep(3)
 
+        let options2 = KBParameters()
+        options2.readOption = .memory
+        options2.writeOption = .none
+
         kikBank
-            .data(with: url, options: options)
+            .data(with: url, options: options2)
             .map { (data) -> UIImage? in
                 return UIImage(data: data)
             }

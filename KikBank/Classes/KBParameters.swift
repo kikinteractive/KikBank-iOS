@@ -45,7 +45,7 @@ public struct KBWriteOption: OptionSet {
     public static let memory = KBWriteOption(rawValue: 1 << 0)
     public static let disk =   KBWriteOption(rawValue: 1 << 1)
 
-    public static let any: KBWriteOption = [.memory, .disk]
+    public static let cache: KBWriteOption = [.memory, .disk]
     public static let none: KBWriteOption = []
 
     public init(rawValue: Int) {
