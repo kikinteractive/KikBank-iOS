@@ -66,7 +66,9 @@ public class KBStorageManager {
     private lazy var deleteSubject = PublishSubject<KBAssetType>()
     private lazy var disposeBag = DisposeBag()
 
-    private lazy var storageDispatchQueue = DispatchQueue(label: "kbStorageManager.storageDispatchQUeue", attributes: .concurrent)
+    private lazy var storageDispatchQueue = DispatchQueue(label: "kbStorageManager.storageDispatchQueue",
+                                                          qos: .background,
+                                                          attributes: .concurrent)
 
     public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
 
