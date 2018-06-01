@@ -277,7 +277,9 @@ public class KBStorageManager {
                     this.logger.log(verbose: "KBStorageManager - Write - Memory - \(asset.identifier)")
                     this.memoryCache[asset.identifier] = asset
 
-                    completable(.completed)
+                    DispatchQueue.main.async {
+                        completable(.completed)
+                    }
                 }
 
                 return Disposables.create()
@@ -298,7 +300,9 @@ public class KBStorageManager {
                 // Mutating task
                 this.storageDispatchQueue.async(flags: .barrier) {
                     guard let contentURL = this.contentURL else {
-                        completable(.error(KBStorageError.badPath))
+                        DispatchQueue.main.async {
+                            completable(.error(KBStorageError.badPath))
+                        }
                         return
                     }
 
@@ -316,11 +320,15 @@ public class KBStorageManager {
 
                         this.logger.log(verbose: "KBStorageManager - Write - Disk - \(asset.identifier)")
 
-                        completable(.completed)
-
+                        DispatchQueue.main.async {
+                            completable(.completed)
+                        }
                     } catch {
                         this.logger.log(error: "KBStorageManager - Write - Disk - Error - \(error)")
-                        completable(.error(KBStorageError.generic(error: error)))
+
+                        DispatchQueue.main.async {
+                            completable(.error(KBStorageError.generic(error: error)))
+                        }
                     }
                 }
 
@@ -345,7 +353,9 @@ public class KBStorageManager {
 
                     this.memoryCache[asset.identifier] = nil
 
-                    completable(.completed)
+                    DispatchQueue.main.async {
+                        completable(.completed)
+                    }
                 }
 
                 return Disposables.create()
@@ -366,7 +376,9 @@ public class KBStorageManager {
                 // Mutating task
                 this.storageDispatchQueue.async(flags: .barrier) {
                     guard let pathURL = this.contentURL?.appendingPathComponent(asset.identifier.description) else {
-                        completable(.error(KBStorageError.badPath))
+                        DispatchQueue.main.async {
+                            completable(.error(KBStorageError.badPath))
+                        }
                         return
                     }
 
@@ -374,13 +386,21 @@ public class KBStorageManager {
                         do {
                             try FileManager.default.removeItem(at: pathURL)
                             this.logger.log(verbose: "KBStorageManager - Delete - Disk - \(asset.identifier)")
-                            completable(.completed)
+
+                            DispatchQueue.main.async {
+                                completable(.completed)
+                            }
                         } catch {
                             this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(asset.identifier)")
-                            completable(.error(KBStorageError.generic(error: error)))
+
+                            DispatchQueue.main.async {
+                                completable(.error(KBStorageError.generic(error: error)))
+                            }
                         }
                     } else {
-                        completable(.error(KBStorageError.notFound))
+                        DispatchQueue.main.async {
+                            completable(.error(KBStorageError.notFound))
+                        }
                     }
                 }
 
@@ -422,7 +442,9 @@ extension KBStorageManager: KBStorageManagerType {
                     this.memoryCache = [Int: KBAssetType]()
                     this.logger.log(verbose: "KBStorageManager - Delete - Memory - All")
 
-                    completable(.completed)
+                    DispatchQueue.main.async {
+                        completable(.completed)
+                    }
                 }
 
                 return Disposables.create()
@@ -440,7 +462,9 @@ extension KBStorageManager: KBStorageManagerType {
                 // Mutating task
                 this.storageDispatchQueue.async(flags: .barrier) {
                     guard let pathURL = this.contentURL else {
-                        completable(.error(KBStorageError.badPath))
+                        DispatchQueue.main.async {
+                            completable(.error(KBStorageError.badPath))
+                        }
                         return
                     }
 
@@ -451,10 +475,16 @@ extension KBStorageManager: KBStorageManagerType {
                             try FileManager.default.removeItem(atPath: fullPath.path)
                         }
                         this.logger.log(verbose: "KBStorageManager - Delete - Disk - All")
-                        completable(.completed)
+
+                        DispatchQueue.main.async {
+                            completable(.completed)
+                        }
                     } catch {
                         this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(error)")
-                        completable(.error(KBStorageError.generic(error: error)))
+
+                        DispatchQueue.main.async {
+                            completable(.error(KBStorageError.generic(error: error)))
+                        }
                     }
                 }
 
