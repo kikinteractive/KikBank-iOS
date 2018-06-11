@@ -55,7 +55,7 @@ public protocol KikBankType {
 
     /// The static logger
     ///
-    var logger: KBStaticLoggerType.Type { get set }
+    var logger: KBLoggerType { get set }
 }
 
 public class KikBank {
@@ -67,7 +67,7 @@ public class KikBank {
     public var downloadManager: KBDownloadManagerType
     public var storageManager: KBStorageManagerType
 
-    public var logger: KBStaticLoggerType.Type = KBStaticLogger.self {
+    public var logger: KBLoggerType = KBLogger() {
         didSet {
             downloadManager.logger = logger
             storageManager.logger = logger

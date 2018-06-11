@@ -31,7 +31,7 @@ public protocol KBDownloadManagerType {
 
     /// The static logger
     ///
-    var logger: KBStaticLoggerType.Type { get set }
+    var logger: KBLoggerType { get set }
 }
 
 /// Download manager which wraps an asynchronous operation queue and provides a Single<Data> type
@@ -41,7 +41,7 @@ public class KBDownloadManager: NSObject {
         static let defaultMaxConcurrentOperationCount = 5
     }
 
-    public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
+    public lazy var logger: KBLoggerType = KBLogger()
 
     private lazy var downloadQueue: OperationQueue = {
         let queue = OperationQueue()

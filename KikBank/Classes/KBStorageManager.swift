@@ -50,7 +50,7 @@ public protocol KBStorageManagerType {
 
     /// The static logger
     ///
-    var logger: KBStaticLoggerType.Type { get set }
+    var logger: KBLoggerType { get set }
 }
 
 /// Storage manager provides simple caching and disk storage solutions
@@ -70,7 +70,7 @@ public class KBStorageManager {
                                                           qos: .background,
                                                           attributes: .concurrent)
 
-    public lazy var logger: KBStaticLoggerType.Type = KBStaticLogger.self
+    public lazy var logger: KBLoggerType = KBLogger()
 
     /// Convenience accessor of the disk file location
     private lazy var contentURL: URL? = {
