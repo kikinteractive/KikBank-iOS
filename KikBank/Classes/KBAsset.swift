@@ -21,8 +21,9 @@ open class KBAsset: NSObject, KBAssetType {
     /// The date at which to invalidate the stored data
     public var expiryDate: Date?
 
-    public init(identifier: Int) {
-        self.identifier = identifier
+    public init(identifier: AnyHashable) {
+        self.identifier = identifier.hashValue
+        super.init()
     }
 
     public required init?(coder aDecoder: NSCoder) {
