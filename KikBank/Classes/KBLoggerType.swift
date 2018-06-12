@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc public protocol KBLoggerType {
+public protocol KBLoggerType {
     func log(verbose description: String) -> Void
     func log(error description: String) -> Void
 }
