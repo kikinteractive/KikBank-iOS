@@ -110,19 +110,7 @@ public class KBStorageManager {
     ///
     private func runDeleteMemoryAction(with asset: KBAssetType) {
         deleteAssetFromMemory(asset)
-            .subscribe(onCompleted: { [weak self] in
-                guard let this = self else {
-                    return
-                }
-
-                this.logger.log(verbose: "Done")
-            }) { [weak self] (error) in
-                guard let this = self else {
-                    return
-                }
-
-                this.logger.log(error: "Error \(error)")
-            }
+            .subscribe()
             .disposed(by: disposeBag)
     }
 
@@ -130,19 +118,7 @@ public class KBStorageManager {
     ///
     private func runDeleteDiskAction(with asset: KBAssetType) {
         deleteAssetFromDisk(asset)
-            .subscribe(onCompleted: { [weak self] in
-                guard let this = self else {
-                    return
-                }
-
-                this.logger.log(verbose: "Done")
-            }) { [weak self] (error) in
-                guard let this = self else {
-                    return
-                }
-
-                this.logger.log(error: "Error \(error)")
-            }
+            .subscribe()
             .disposed(by: disposeBag)
     }
 
@@ -215,13 +191,17 @@ public class KBStorageManager {
                 // Read task
                 this.storageDispatchQueue.sync {
                     guard let asset = this.memoryCache[identifier.hashValue] else {
-                        single(.error(KBStorageError.notFound))
+                        DispatchQueue.main.async {
+                            single(.error(KBStorageError.notFound))
+                        }
                         return
                     }
 
                     this.logger.log(verbose: "KBStorageManager - Read - Memory - \(identifier)")
 
-                    single(.success(asset))
+                    DispatchQueue.main.async {
+                        single(.success(asset))
+                    }
                 }
 
                 return Disposables.create()
@@ -243,18 +223,24 @@ public class KBStorageManager {
                 // Read task
                 this.storageDispatchQueue.sync {
                     guard let pathURL = this.contentURL?.appendingPathComponent(identifier.description) else {
-                        single(.error(KBStorageError.badPath))
+                        DispatchQueue.main.async {
+                            single(.error(KBStorageError.badPath))
+                        }
                         return
                     }
 
                     guard let unarchived = NSKeyedUnarchiver.unarchiveObject(withFile: pathURL.path) as? KBAssetType else {
-                        single(.error(KBStorageError.notFound))
+                        DispatchQueue.main.async {
+                            single(.error(KBStorageError.notFound))
+                        }
                         return
                     }
 
                     this.logger.log(verbose: "KBStorageManager - Read - Disk - \(identifier)")
 
-                    single(.success(unarchived))
+                    DispatchQueue.main.async {
+                        single(.success(unarchived))
+                    }
                 }
 
                 return Disposables.create()
