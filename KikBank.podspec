@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "KikBank"
-  s.version      = "0.4.1"
+  s.version      = "0.5.0"
   s.summary      = "URL Data fetch and cache framework"
   s.description  = <<-DESC
                    "Kik Bank is a basic URL -> Data fetch and cache framework based around RxSwift"
