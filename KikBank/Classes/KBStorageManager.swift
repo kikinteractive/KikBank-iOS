@@ -189,7 +189,7 @@ public class KBStorageManager {
                 }
 
                 // Read task
-                this.storageDispatchQueue.sync {
+                this.storageDispatchQueue.async {
                     guard let asset = this.memoryCache[identifier.hashValue] else {
                         DispatchQueue.main.async {
                             single(.error(KBStorageError.notFound))
@@ -221,7 +221,7 @@ public class KBStorageManager {
                 }
 
                 // Read task
-                this.storageDispatchQueue.sync {
+                this.storageDispatchQueue.async {
                     guard let pathURL = this.contentURL?.appendingPathComponent(identifier.description) else {
                         DispatchQueue.main.async {
                             single(.error(KBStorageError.badPath))
