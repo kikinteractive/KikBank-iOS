@@ -399,13 +399,13 @@ class KBStorageManagerTests: XCTestCase {
         waitForExpectations(timeout: 0.5, handler: nil)
     }
 
-    func testSecondaryWriteAfterOptional() {
+    func testDiskOptionalWriteAfterMemoryWrite() {
         // Writing to memory, and then writing to memory AND disk optionally
         // Should return successful
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testSecondaryWriteAfterOptional".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testDiskOptionalWriteAfterMemoryWrite".hashValue, data: someData)
 
-        let expectWrite = expectation(description: "testSecondaryWriteAfterOptional")
+        let expectWrite = expectation(description: "testDiskOptionalWriteAfterMemoryWrite")
         storageManager
             .store(asset, writeOption: [.memory])
             .subscribe(onCompleted: {
@@ -415,13 +415,106 @@ class KBStorageManagerTests: XCTestCase {
             }
             .disposed(by: disposeBag)
 
-        let expectSkip = expectation(description: "testSecondaryWriteAfterOptionalSecond")
+        let expectSkip = expectation(description: "testDiskOptionalWriteAfterMemoryWriteSecond")
         storageManager
             .store(asset, writeOption: [.memory, .disk, .optional])
             .subscribe(onCompleted: {
                 expectSkip.fulfill()
             }) { (error) in
                 XCTFail("Should have written to disk")
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
+    }
+
+    func testMemoryOptionalWriteAfterDiskWrite() {
+        // Writing to memory, and then writing to memory AND disk optionally
+        // Should return successful
+        let someData = "text".data(using: .utf8)!
+        let asset = KBDataAsset(identifier: "testMemoryOptionalWriteAfterDiskWrite".hashValue, data: someData)
+
+        let expectWrite = expectation(description: "testMemoryOptionalWriteAfterDiskWrite")
+        storageManager
+            .store(asset, writeOption: [.disk])
+            .subscribe(onCompleted: {
+                expectWrite.fulfill()
+            }) { (error) in
+                XCTFail("Could not write to disk")
+            }
+            .disposed(by: disposeBag)
+
+        let expectSkip = expectation(description: "testMemoryOptionalWriteAfterDiskWriteSecond")
+        storageManager
+            .store(asset, writeOption: [.memory, .disk, .optional])
+            .subscribe(onCompleted: {
+                expectSkip.fulfill()
+            }) { (error) in
+                XCTFail("Should have written to disk")
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
+    }
+
+    func testOptionalWriteNewData() {
+        // Altering an assets data should force a rewrite
+        let someData = "text".data(using: .utf8)!
+        let asset = KBDataAsset(identifier: "testOptionalWriteNewData".hashValue, data: someData)
+
+        let expectWrite = expectation(description: "testOptionalWriteNewData")
+        storageManager
+            .store(asset, writeOption: [.memory, .optional])
+            .subscribe(onCompleted: {
+                expectWrite.fulfill()
+            }) { (error) in
+                XCTFail("Could not write to memory")
+            }
+            .disposed(by: disposeBag)
+
+        // Update the asset
+        let newData = "differentText".data(using: .utf8)!
+        asset.data = newData
+
+        let expectSecondWrite = expectation(description: "testOptionalWriteNewDataOverwrite")
+        storageManager
+            .store(asset, writeOption: [.memory, .optional])
+            .subscribe(onCompleted: {
+                expectSecondWrite.fulfill()
+            }) { (error) in
+                XCTFail("Should have written to memory")
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
+    }
+
+    func testOptionalWriteNewExpiryDate() {
+        // Altering an assets expiry date should force a rewrite
+        let someData = "text".data(using: .utf8)!
+        let asset = KBDataAsset(identifier: "testOptionalWriteNewExpiryDate".hashValue, data: someData)
+        asset.expiryDate = Date().addingTimeInterval(10)
+
+        let expectWrite = expectation(description: "testOptionalWriteNewExpiryDate")
+        storageManager
+            .store(asset, writeOption: [.memory, .optional])
+            .subscribe(onCompleted: {
+                expectWrite.fulfill()
+            }) { (error) in
+                XCTFail("Could not write to memory")
+            }
+            .disposed(by: disposeBag)
+
+        // Update the asset
+        asset.expiryDate = Date().addingTimeInterval(20)
+
+        let expectSecondWrite = expectation(description: "testOptionalWriteNewExpiryDateOverwrite")
+        storageManager
+            .store(asset, writeOption: [.memory, .optional])
+            .subscribe(onCompleted: {
+                expectSecondWrite.fulfill()
+            }) { (error) in
+                XCTFail("Should have written to memory")
             }
             .disposed(by: disposeBag)
 
