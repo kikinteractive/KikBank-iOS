@@ -40,4 +40,12 @@ open class KBDataAsset: KBAsset, KBDataAssetType {
 
         aCoder.encode(data, forKey: Constants.dataKey)
     }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let dataAsset = object as? KBDataAsset else {
+            return false
+        }
+
+        return super.isEqual(object) && data == dataAsset.data
+    }
 }

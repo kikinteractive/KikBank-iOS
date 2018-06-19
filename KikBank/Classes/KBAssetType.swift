@@ -14,4 +14,6 @@ public protocol KBAssetType: class, NSCoding {
     var expiryDate: Date? { get set }
     // Convenience accessor to calculate validity
     var isValid: Bool { get }
+
+    func isEqual(_ object: Any?) -> Bool
 }
