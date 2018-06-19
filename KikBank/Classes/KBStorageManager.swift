@@ -95,6 +95,7 @@ public class KBStorageManager {
 
     /// Delete operation queue
     private lazy var deleteSubject = PublishSubject<KBAssetType>()
+    
     private lazy var disposeBag = DisposeBag()
 
     public lazy var logger: KBLoggerType = KBLogger()
@@ -203,7 +204,7 @@ public class KBStorageManager {
             })
     }
 
-    /// Read an asset defined by a unique idenentifier from in-memory cache
+    /// Read an asset defined by a unique identifier from in-memory cache
     ///
     /// - Parameter key: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
@@ -228,7 +229,7 @@ public class KBStorageManager {
             })
     }
 
-    /// Reads an asset defined by a unique idenentifier from disk if available
+    /// Reads an asset defined by a unique identifier from disk if available
     ///
     /// - Parameter key: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
@@ -320,7 +321,7 @@ public class KBStorageManager {
             })
     }
 
-    /// Deletes the provided asset from memory storageg
+    /// Deletes the provided asset from memory storage
     ///
     /// - Parameter asset: The asset to be removed from memory
     private func deleteAssetFromMemory(_ asset: KBAssetType) -> Completable {
@@ -341,7 +342,7 @@ public class KBStorageManager {
             })
     }
 
-    /// Deletes the provided asset from disk storageg
+    /// Deletes the provided asset from disk storage
     ///
     /// - Parameter asset: The asset to be removed from disk
     private func deleteAssetFromDisk(_ asset: KBAssetType) -> Completable {
