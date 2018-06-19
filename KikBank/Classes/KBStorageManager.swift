@@ -9,14 +9,45 @@
 import Foundation
 import RxSwift
 
-enum KBStorageError: Error {
-    case deallocated
-    case badPath
-    case noWrite // Invalid write operation specified
-    case noRead // Invalid read operation specified
-    case notFound
-    case invalid
+enum KBStorageError: Error, Equatable {
+    case deallocated    // The storage manager has been deallocated
+    case badPath        // Could not create a path to the asset
+    case noWrite        // Invalid write operation specified
+    case noRead         // Invalid read operation specified
+    case notFound       // No asset found with that identifier
+    case invalid        // The asset failed validation and has been deleted
+    case optionalSkip   // An existing record is equal, no write required
     case generic(error: Error)
+
+    static func ==(lhs: KBStorageError, rhs: KBStorageError) -> Bool {
+        switch (lhs, rhs) {
+        case (.deallocated, .deallocated):
+            return true
+        case (.badPath, .badPath):
+            return true
+        case (.noWrite, .noWrite):
+            return true
+        case (.noRead, .noRead):
+            return true
+        case (.notFound, .notFound):
+            return true
+        case (.invalid, .invalid):
+            return true
+        case (.optionalSkip, .optionalSkip):
+            return true
+        case (.generic, .generic):
+            return true
+        case (.deallocated, _),
+             (.badPath, _),
+             (.noWrite, _),
+             (.noRead, _),
+             (.notFound, _),
+             (.invalid, _),
+             (.optionalSkip, _),
+             (.generic, _):
+            return false
+        }
+    }
 }
 
 public protocol KBStorageManagerType {
@@ -64,6 +95,7 @@ public class KBStorageManager {
 
     /// Delete operation queue
     private lazy var deleteSubject = PublishSubject<KBAssetType>()
+    
     private lazy var disposeBag = DisposeBag()
 
     public lazy var logger: KBLoggerType = KBLogger()
@@ -136,7 +168,7 @@ public class KBStorageManager {
             readOperation = readAssetFromMemory(with: identifier)
         } else if readOption == .disk {
             // Only read from disk
-            readOperation = readAssetFomDisk(with: identifier)
+            readOperation = readAssetFromDisk(with: identifier)
         } else if readOption.contains(.memory) && readOption.contains(.disk) {
             // Read memory and then disk if needed
             readOperation = readAssetFromMemory(with: identifier)
@@ -146,7 +178,7 @@ public class KBStorageManager {
                     }
 
                     // Could not read from memory, check disk
-                    return this.readAssetFomDisk(with: identifier)
+                    return this.readAssetFromDisk(with: identifier)
                 })
         }
 
@@ -172,7 +204,7 @@ public class KBStorageManager {
             })
     }
 
-    /// Read an asset defined by a unique idenentifier from in-memory cache
+    /// Read an asset defined by a unique identifier from in-memory cache
     ///
     /// - Parameter key: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
@@ -197,11 +229,11 @@ public class KBStorageManager {
             })
     }
 
-    /// Reads an asset defined by a unique idenentifier from disk if available
+    /// Reads an asset defined by a unique identifier from disk if available
     ///
     /// - Parameter key: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
-    private func readAssetFomDisk(with identifier: AnyHashable) -> Single<KBAssetType> {
+    private func readAssetFromDisk(with identifier: AnyHashable) -> Single<KBAssetType> {
         return Single
             .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
@@ -289,7 +321,7 @@ public class KBStorageManager {
             })
     }
 
-    /// Deletes the provided asset from memory storageg
+    /// Deletes the provided asset from memory storage
     ///
     /// - Parameter asset: The asset to be removed from memory
     private func deleteAssetFromMemory(_ asset: KBAssetType) -> Completable {
@@ -310,7 +342,7 @@ public class KBStorageManager {
             })
     }
 
-    /// Deletes the provided asset from disk storageg
+    /// Deletes the provided asset from disk storage
     ///
     /// - Parameter asset: The asset to be removed from disk
     private func deleteAssetFromDisk(_ asset: KBAssetType) -> Completable {
@@ -351,12 +383,87 @@ extension KBStorageManager: KBStorageManagerType {
     public func store(_ asset: KBAssetType, writeOption: KBWriteOption) -> Completable {
         var completable = Completable.empty()
 
+        let isOptional = writeOption.contains(.optional)
+
         if writeOption.contains(.disk) {
-            completable = completable.andThen(writeToDisk(asset))
+            if isOptional {
+                completable = completable
+                    .andThen(readAssetFromDisk(with: asset.identifier))
+                    .asObservable()
+                    .catchError({ [weak self] (error) -> Observable<KBAssetType> in
+                        guard let this = self else {
+                            return .error(KBStorageError.deallocated)
+                        }
+
+                        if (error as? KBStorageError) == KBStorageError.notFound {
+                            // No record exists, we will need to write it
+                            return this
+                                .writeToDisk(asset)
+                                .asObservable()
+                                .flatMap({ (_) -> Observable<KBAssetType> in
+                                    return .just(asset)
+                                })
+                        }
+
+                        // Some other error was returned, let it propagate
+                        return .error(error)
+                    })
+                    .flatMap({ (existingAsset) -> Single<KBAssetType> in
+                        // If the existing item is equal to the write, we can skip
+                        if asset.isEqual(existingAsset) {
+                            // No need to write
+                            return .error(KBStorageError.optionalSkip)
+                        }
+
+                        return .just(asset)
+                    })
+                    .flatMap { _ in Observable<Never>.empty() }
+                    .asCompletable()
+            } else {
+                // Non optional write, so just append the next operation
+                completable = completable.andThen(writeToDisk(asset))
+            }
         }
 
         if writeOption.contains(.memory) {
-            completable = completable.andThen(writeToMemory(asset))
+            if isOptional {
+                // Check if a record exists before making a new request
+                completable = completable
+                    .andThen(readAssetFromMemory(with: asset.identifier))
+                    .asObservable()
+                    .catchError({ [weak self] (error) -> Observable<KBAssetType> in
+                        guard let this = self else {
+                            return .error(KBStorageError.deallocated)
+                        }
+
+                        if (error as? KBStorageError) == KBStorageError.notFound {
+                            // No record exists, we will need to write it
+                            return this
+                                .writeToMemory(asset)
+                                .asObservable()
+                                .flatMap({ (_) -> Observable<KBAssetType> in
+                                    return .just(asset)
+                                })
+                        }
+
+                        // Some other error was returned, let it propagate
+                        return .error(error)
+                    })
+                    .flatMap({ (existingAsset) -> Single<KBAssetType> in
+                        // If the existing item is equal to the write, we can skip
+                        if asset.isEqual(existingAsset) {
+                            // No need to write
+                            return .error(KBStorageError.optionalSkip)
+                        }
+
+                        return .just(asset)
+                    })
+                    .flatMap { _ in Observable<Never>.empty() }
+                    .asCompletable()
+            } else {
+                // Non optional write, so just append the next operation
+                completable = completable.andThen(writeToMemory(asset))
+            }
         }
 
         return completable

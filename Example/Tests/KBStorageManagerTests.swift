@@ -28,20 +28,12 @@ class KBStorageManagerTests: XCTestCase {
 
         storageManager
             .clearMemoryStorage()
-            .subscribe(onCompleted: {
-                print("tearDown - Cleared memory")
-            }) { (error) in
-                print("tearDown - Error clearing memory - \(error)")
-            }
+            .subscribe()
             .disposed(by: disposeBag)
 
         storageManager
             .clearDiskStorage()
-            .subscribe(onCompleted: {
-                print("tearDown - Cleared disk storage")
-            }) { (error) in
-                print("tearDown - Error clearing disk storage - \(error)")
-            }
+            .subscribe()
             .disposed(by: disposeBag)
     }
 
@@ -145,6 +137,7 @@ class KBStorageManagerTests: XCTestCase {
         waitForExpectations(timeout: 0.5, handler: nil)
     }
 
+    // Clearing data
     func testClearMemory() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testClearMemory".hashValue
@@ -187,7 +180,7 @@ class KBStorageManagerTests: XCTestCase {
             .subscribe(onSuccess: { (asset) in
                 XCTFail("Asset should be deleted")
             }) { (error) in
-                XCTAssertEqual(error.localizedDescription, KBStorageError.notFound.localizedDescription)
+                XCTAssertEqual(error as? KBStorageError, KBStorageError.notFound)
                 errorExpectation.fulfill()
             }
             .disposed(by: disposeBag)
@@ -245,6 +238,7 @@ class KBStorageManagerTests: XCTestCase {
         waitForExpectations(timeout: 0.5, handler: nil)
     }
 
+    // Asset Expiry
     func testAssetExpiry() {
         let someData = "text".data(using: .utf8)!
         let identifier = "testAssetExpiry".hashValue
@@ -288,5 +282,149 @@ class KBStorageManagerTests: XCTestCase {
             .disposed(by: disposeBag)
 
         waitForExpectations(timeout: 2, handler: nil)
+    }
+
+    // Optionality
+    func testOptionalMemoryWrite() {
+        let someData = "text".data(using: .utf8)!
+        let asset = KBDataAsset(identifier: "testOptionalMemoryWrite".hashValue, data: someData)
+
+        let expectWrite = expectation(description: "testOptionalMemoryWrite")
+        storageManager
+            .store(asset, writeOption: [.memory, .optional])
+            .subscribe(onCompleted: {
+                expectWrite.fulfill()
+            }) { (error) in
+                XCTFail("Could not write to memory")
+            }
+            .disposed(by: disposeBag)
+
+        let expectSkip = expectation(description: "testOptionalMemorySkip")
+        storageManager
+            .store(asset, writeOption: [.memory, .optional])
+            .subscribe(onCompleted: {
+                XCTFail("Should not have written to memory")
+            }) { (error) in
+                XCTAssertEqual(error as? KBStorageError, KBStorageError.optionalSkip)
+                expectSkip.fulfill()
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
+    }
+
+    func testOptionalDiskWrite() {
+        let someData = "text".data(using: .utf8)!
+        let asset = KBDataAsset(identifier: "testOptionalDiskWrite".hashValue, data: someData)
+
+        let expectWrite = expectation(description: "testOptionalDiskWrite")
+        storageManager
+            .store(asset, writeOption: [.disk, .optional])
+            .subscribe(onCompleted: {
+                expectWrite.fulfill()
+            }) { (error) in
+                XCTFail("Could not write to disk")
+            }
+            .disposed(by: disposeBag)
+
+        let expectSkip = expectation(description: "testOptionalDiskSkip")
+        storageManager
+            .store(asset, writeOption: [.disk, .optional])
+            .subscribe(onCompleted: {
+                XCTFail("Should not have written to disk")
+            }) { (error) in
+                XCTAssertEqual(error as? KBStorageError, KBStorageError.optionalSkip)
+                expectSkip.fulfill()
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
+    }
+
+    func testSecondayNonOptionalMemoryWrite() {
+        // Writing to memory once, and then trying again optionally should return .optionalSkip
+        // But writing to memory the second time non-optionally should overwrite existing record and return successful
+        let someData = "text".data(using: .utf8)!
+        let asset = KBDataAsset(identifier: "testSecondayNonOptionalWrite".hashValue, data: someData)
+
+        let expectWrite = expectation(description: "testSecondayNonOptionalWrite")
+        storageManager
+            .store(asset, writeOption: [.memory, .optional])
+            .subscribe(onCompleted: {
+                expectWrite.fulfill()
+            }) { (error) in
+                XCTFail("Could not write to memory")
+            }
+            .disposed(by: disposeBag)
+
+        let expectSecondWrite = expectation(description: "testSecondayNonOptionalSecondWrite")
+        storageManager
+            .store(asset, writeOption: [.memory])
+            .subscribe(onCompleted: {
+                expectSecondWrite.fulfill()
+            }) { (error) in
+                XCTFail("Should have written to memory")
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
+    }
+
+    func testSecondayNonOptionalDiskWrite() {
+        // Writing to disk once, and then trying again optionally should return .optionalSkip
+        // But writing to disk the second time non-optionally should overwrite existing record and return successful
+        let someData = "text".data(using: .utf8)!
+        let asset = KBDataAsset(identifier: "testSecondayNonOptionalDiskWrite".hashValue, data: someData)
+
+        let expectWrite = expectation(description: "testSecondayNonOptionalDiskWrite")
+        storageManager
+            .store(asset, writeOption: [.disk, .optional])
+            .subscribe(onCompleted: {
+                expectWrite.fulfill()
+            }) { (error) in
+                XCTFail("Could not write to disk")
+            }
+            .disposed(by: disposeBag)
+
+        let expectSecondWrite = expectation(description: "testSecondayNonOptionalDiskSecondWrite")
+        storageManager
+            .store(asset, writeOption: [.disk])
+            .subscribe(onCompleted: {
+                expectSecondWrite.fulfill()
+            }) { (error) in
+                XCTFail("Should have written to disk")
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
+    }
+
+    func testSecondaryWriteAfterOptional() {
+        // Writing to memory, and then writing to memory AND disk optionally
+        // Should return successful
+        let someData = "text".data(using: .utf8)!
+        let asset = KBDataAsset(identifier: "testSecondaryWriteAfterOptional".hashValue, data: someData)
+
+        let expectWrite = expectation(description: "testSecondaryWriteAfterOptional")
+        storageManager
+            .store(asset, writeOption: [.memory])
+            .subscribe(onCompleted: {
+                expectWrite.fulfill()
+            }) { (error) in
+                XCTFail("Could not write to disk")
+            }
+            .disposed(by: disposeBag)
+
+        let expectSkip = expectation(description: "testSecondaryWriteAfterOptionalSecond")
+        storageManager
+            .store(asset, writeOption: [.memory, .disk, .optional])
+            .subscribe(onCompleted: {
+                expectSkip.fulfill()
+            }) { (error) in
+                XCTFail("Should have written to disk")
+            }
+            .disposed(by: disposeBag)
+
+        waitForExpectations(timeout: 0.5, handler: nil)
     }
 }

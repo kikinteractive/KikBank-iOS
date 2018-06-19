@@ -19,10 +19,12 @@ import Foundation
 public struct KBReadOption: OptionSet {
     public let rawValue: Int
 
+    // Read Options
     public static let disk =    KBReadOption(rawValue: 1 << 0)
     public static let memory =  KBReadOption(rawValue: 1 << 1)
     public static let network = KBReadOption(rawValue: 1 << 2)
 
+    // Convenience Options
     public static let cache: KBReadOption = [.disk, .memory]
     public static let any: KBReadOption = [.disk, .memory, .network]
     public static let none: KBReadOption = []
@@ -37,15 +39,24 @@ public struct KBReadOption: OptionSet {
 
  - memory: Write item to memory, lost on storage dealloc
  - disk: Write item to disk, saved between sessions
- - all: Write item to memory and to disk storage
+ - optional: Check for existing equal item before performing a write operation
+        NOTE: .optional is a modifier write option
+              If only .optional is provided nothing will be saved
+ - cache: memory and disk
+ - none: No write required
  */
 public struct KBWriteOption: OptionSet {
     public let rawValue: Int
 
+    // Write Options
     public static let memory = KBWriteOption(rawValue: 1 << 0)
     public static let disk =   KBWriteOption(rawValue: 1 << 1)
 
-    public static let cache: KBWriteOption = [.memory, .disk]
+    // Modifier
+    public static let optional = KBWriteOption(rawValue: 1 << 2)
+
+    // Convenience Options
+    public static let cache: KBWriteOption = [.memory, .disk, .optional]
     public static let none: KBWriteOption = []
 
     public init(rawValue: Int) {
@@ -60,5 +71,5 @@ public class KBParameters: NSObject {
     public var readOption: KBReadOption = .any
 
     // The data write type
-    public var writeOption: KBWriteOption = .memory
+    public var writeOption: KBWriteOption = [.memory, .optional]
 }
