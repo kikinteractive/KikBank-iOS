@@ -57,8 +57,8 @@ public protocol KBStorageManagerType {
     /// - Parameters:
     ///   - asset: The asset to be stored
     ///   - writeOption: The write policy of the asset
-    /// - Returns: A completable indicating the write operation finished
-    func store(_ asset: KBAssetType, writeOption: KBWriteOption) -> Completable
+    /// - Returns: A single observable sequence returning the saved asset
+    func store(_ asset: KBAssetType, writeOption: KBWriteOption) -> Single<KBAssetType>
 
 
     /// Get any valid data defined by the provided identifier
@@ -91,7 +91,7 @@ public class KBStorageManager {
     private let cachePathExtension: String
 
     /// The in memory asset cache
-    private lazy var memoryCache = [Int: KBAssetType]()
+    private lazy var memoryCache = [Int: Data]()
 
     /// Delete operation queue
     private lazy var deleteSubject = PublishSubject<KBAssetType>()
@@ -216,10 +216,13 @@ public class KBStorageManager {
                     return Disposables.create()
                 }
 
-                guard let asset = this.memoryCache[identifier.hashValue] else {
-                    single(.error(KBStorageError.notFound))
-                    return Disposables.create()
+                guard
+                    let assetData = this.memoryCache[identifier.hashValue],
+                    let asset = NSKeyedUnarchiver.unarchiveObject(with: assetData) as? KBAssetType else {
+                        single(.error(KBStorageError.notFound))
+                        return Disposables.create()
                 }
+
 
                 this.logger.log(verbose: "KBStorageManager - Read - Memory - \(identifier)")
 
@@ -259,40 +262,102 @@ public class KBStorageManager {
             })
     }
 
+    /// Check for an existing matching record, and if none exists write it to memory
+    ///
+    /// - Parameter asset: The asset the be optionally writted to memory
+    private func optionallyWriteToMemory(_ asset: KBAssetType) -> Single<KBAssetType> {
+        // Do a read to see if we have an exisiting record
+        return readAssetFromMemory(with: asset.identifier)
+            .flatMap({ (existingAsset) -> Single<KBAssetType> in
+                // A record was found, check if it is equal to the write operation
+                if existingAsset.isEqual(asset) {
+                    // Skip the write
+                    return .error(KBStorageError.optionalSkip)
+                }
+
+                return .just(asset)
+            })
+            .catchError({ [weak self] (error) -> Single<KBAssetType> in
+                guard let this = self else {
+                    return .error(KBStorageError.deallocated)
+                }
+
+                if (error as? KBStorageError) == KBStorageError.notFound {
+                    // No record found, a write is needed
+                    return this.writeToMemory(asset)
+                }
+
+                // Otherwise, we propagate the error
+                return .error(error)
+            })
+    }
+
     /// Write the provided asset to memory
     ///
     /// - Parameter asset: The asset the be writted to memory
-    private func writeToMemory(_ asset: KBAssetType) -> Completable {
-        return Completable
-            .create(subscribe: { [weak self] (completable) -> Disposable in
+    private func writeToMemory(_ asset: KBAssetType) -> Single<KBAssetType> {
+        return Single
+            .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
-                    completable(.error(KBStorageError.deallocated))
+                    single(.error(KBStorageError.deallocated))
                     return Disposables.create()
                 }
 
+                let assetData = NSKeyedArchiver.archivedData(withRootObject: asset)
+                this.memoryCache[asset.identifier] = assetData
+
                 this.logger.log(verbose: "KBStorageManager - Write - Memory - \(asset.identifier)")
 
-                this.memoryCache[asset.identifier] = asset
-
-                completable(.completed)
+                single(.success(asset))
 
                 return Disposables.create()
             })
     }
 
+    /// Check for an existing matching record, and if none exists write it to disk
+    ///
+    /// - Parameter asset: The asset the be optionally writted to disk
+    private func optionallyWriteToDisk(_ asset: KBAssetType) -> Single<KBAssetType> {
+        // Do a read to see if we have an exisiting record
+        return readAssetFromDisk(with: asset.identifier)
+            .flatMap({ (existingAsset) -> Single<KBAssetType> in
+                // A record was found, check if it is equal to the write operation
+                if existingAsset.isEqual(asset) {
+                    // Skip the write
+                    return .error(KBStorageError.optionalSkip)
+                }
+
+                return .just(asset)
+            })
+            .catchError({ [weak self] (error) -> Single<KBAssetType> in
+                guard let this = self else {
+                    return .error(KBStorageError.deallocated)
+                }
+
+                if (error as? KBStorageError) == KBStorageError.notFound {
+                    // No record found, a write is needed
+                    return this.writeToDisk(asset)
+                }
+
+                // Otherwise, we propagate the error
+                return .error(error)
+            })
+    }
+
+
     /// Write the provided asset to disk
     ///
     /// - Parameter asset: The asset to be written to disk
-    private func writeToDisk(_ asset: KBAssetType) -> Completable {
-        return Completable
-            .create(subscribe: { [weak self] (completable) -> Disposable in
+    private func writeToDisk(_ asset: KBAssetType) -> Single<KBAssetType> {
+        return Single
+            .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
-                    completable(.error(KBStorageError.deallocated))
+                    single(.error(KBStorageError.deallocated))
                     return Disposables.create {}
                 }
 
                 guard let contentURL = this.contentURL else {
-                    completable(.error(KBStorageError.badPath))
+                    single(.error(KBStorageError.badPath))
                     return Disposables.create()
                 }
 
@@ -310,11 +375,11 @@ public class KBStorageManager {
 
                     this.logger.log(verbose: "KBStorageManager - Write - Disk - \(asset.identifier)")
 
-                    completable(.completed)
+                    single(.success(asset))
                 } catch {
                     this.logger.log(error: "KBStorageManager - Write - Disk - Error - \(error)")
 
-                    completable(.error(KBStorageError.generic(error: error)))
+                    single(.error(KBStorageError.generic(error: error)))
                 }
 
                 return Disposables.create()
@@ -380,93 +445,98 @@ public class KBStorageManager {
 
 extension KBStorageManager: KBStorageManagerType {
 
-    public func store(_ asset: KBAssetType, writeOption: KBWriteOption) -> Completable {
-        var completable = Completable.empty()
+    public func store(_ asset: KBAssetType, writeOption: KBWriteOption) -> Single<KBAssetType> {
+        // Keep track of any optional skip errors. In the event that one operation skips
+        // while the other completes we do not return a skip error
+        let isDiskWrite = writeOption.contains(.disk)
+        let isOptionalDiskWrite = writeOption.contains(.disk) && writeOption.contains(.optional)
+        var didSkipDiskWrite = false
 
-        let isOptional = writeOption.contains(.optional)
+        let isMemoryWrite = writeOption.contains(.memory)
+        let isOptionalMemoryWrite = writeOption.contains(.memory) && writeOption.contains(.optional)
+        var didSkipMemoryWrite = false
 
-        if writeOption.contains(.disk) {
-            if isOptional {
-                completable = completable
-                    .andThen(readAssetFromDisk(with: asset.identifier))
-                    .asObservable()
-                    .catchError({ [weak self] (error) -> Observable<KBAssetType> in
-                        guard let this = self else {
-                            return .error(KBStorageError.deallocated)
-                        }
+        return Single
+            .just(asset)
+            .flatMap { [weak self] (_) -> Single<KBAssetType> in
+                // Disk operations
+                guard let this = self else {
+                    return Single.error(KBStorageError.deallocated)
+                }
 
-                        if (error as? KBStorageError) == KBStorageError.notFound {
-                            // No record exists, we will need to write it
-                            return this
-                                .writeToDisk(asset)
-                                .asObservable()
-                                .flatMap({ (_) -> Observable<KBAssetType> in
-                                    return .just(asset)
-                                })
-                        }
+                if isOptionalDiskWrite {
+                    return this.optionallyWriteToDisk(asset)
+                }
 
-                        // Some other error was returned, let it propagate
-                        return .error(error)
-                    })
-                    .flatMap({ (existingAsset) -> Single<KBAssetType> in
-                        // If the existing item is equal to the write, we can skip
-                        if asset.isEqual(existingAsset) {
-                            // No need to write
-                            return .error(KBStorageError.optionalSkip)
-                        }
+                if isDiskWrite {
+                    return this.writeToDisk(asset)
+                }
 
-                        return .just(asset)
-                    })
-                    .flatMap { _ in Observable<Never>.empty() }
-                    .asCompletable()
-            } else {
-                // Non optional write, so just append the next operation
-                completable = completable.andThen(writeToDisk(asset))
+                return Single.just(asset)
             }
-        }
+            .catchError { (error) -> Single<KBAssetType> in
+                // Disk error handling
+                // In the event that we have a memory write, we will just keep track of this error
+                if (error as? KBStorageError) == KBStorageError.optionalSkip && isOptionalDiskWrite {
+                    didSkipDiskWrite = true
+                }
 
-        if writeOption.contains(.memory) {
-            if isOptional {
-                // Check if a record exists before making a new request
-                completable = completable
-                    .andThen(readAssetFromMemory(with: asset.identifier))
-                    .asObservable()
-                    .catchError({ [weak self] (error) -> Observable<KBAssetType> in
-                        guard let this = self else {
-                            return .error(KBStorageError.deallocated)
-                        }
+                // Even with an error, if there is memory work we should do it
+                if isMemoryWrite {
+                    return .just(asset)
+                }
 
-                        if (error as? KBStorageError) == KBStorageError.notFound {
-                            // No record exists, we will need to write it
-                            return this
-                                .writeToMemory(asset)
-                                .asObservable()
-                                .flatMap({ (_) -> Observable<KBAssetType> in
-                                    return .just(asset)
-                                })
-                        }
-
-                        // Some other error was returned, let it propagate
-                        return .error(error)
-                    })
-                    .flatMap({ (existingAsset) -> Single<KBAssetType> in
-                        // If the existing item is equal to the write, we can skip
-                        if asset.isEqual(existingAsset) {
-                            // No need to write
-                            return .error(KBStorageError.optionalSkip)
-                        }
-
-                        return .just(asset)
-                    })
-                    .flatMap { _ in Observable<Never>.empty() }
-                    .asCompletable()
-            } else {
-                // Non optional write, so just append the next operation
-                completable = completable.andThen(writeToMemory(asset))
+                // If it is not a skip issue, we propagate the error
+                return .error(error)
             }
-        }
+            .flatMap { [weak self] (_) -> Single<KBAssetType> in
+                // Memory operations
+                guard let this = self else {
+                    return Single.error(KBStorageError.deallocated)
+                }
 
-        return completable
+                if isOptionalMemoryWrite {
+                    return this.optionallyWriteToMemory(asset)
+                }
+
+                if isMemoryWrite {
+                    return this.writeToMemory(asset)
+                }
+
+                return Single.just(asset)
+            }
+            .catchError { (error) -> Single<KBAssetType> in
+                // Memory error handling and final state checks
+                // In the event we did an optional memory write, and did not end up writing
+                if (error as? KBStorageError) == KBStorageError.optionalSkip && isOptionalMemoryWrite {
+                    didSkipMemoryWrite = true
+                }
+
+                // Handle the final error cases
+                // In the event both memory and disk writes were optionally skipped
+                if didSkipDiskWrite && didSkipMemoryWrite {
+                    // We return a global error
+                    return .error(KBStorageError.optionalSkip)
+                }
+
+                // In the event we skipped a disk write
+                if didSkipDiskWrite {
+                    // It is considered a valid operation if there was also a memory write
+                    if isMemoryWrite && !didSkipMemoryWrite {
+                        return .just(asset)
+                    }
+                }
+
+                // Same is true for the inverse
+                if didSkipMemoryWrite {
+                    if isDiskWrite && !didSkipDiskWrite {
+                        return .just(asset)
+                    }
+                }
+
+                // Otherwise, we propagate the error
+                return .error(error)
+        }
     }
 
     public func fetch(_ identifier: AnyHashable, readOption: KBReadOption) -> Single<KBAssetType> {
@@ -481,7 +551,8 @@ extension KBStorageManager: KBStorageManagerType {
                     return Disposables.create()
                 }
 
-                this.memoryCache = [Int: KBAssetType]()
+                this.memoryCache = [Int: Data]()
+
                 this.logger.log(verbose: "KBStorageManager - Delete - Memory - All")
 
                 completable(.completed)
