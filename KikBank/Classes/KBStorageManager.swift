@@ -208,9 +208,10 @@ public class KBStorageManager {
             })
     }
 
-    /// Check for an existing matching record, and if none exists write it to memory
+    /// Writes an asset to memory dependant on supplied options
     ///
-    /// - Parameter asset: The asset the be optionally writted to memory
+    /// - Parameter asset: The asset to be written to memory
+    /// - Parameter options: The write option parameters
     private func writeToMemory(_ asset: KBAssetType, options: KBWriteOption) -> Single<KBAssetType> {
         guard options.contains(.memory) else {
             return Single.error(KBStorageError.noWrite)
@@ -246,6 +247,9 @@ public class KBStorageManager {
             })
     }
 
+    /// Writes an asset to memory
+    ///
+    /// - Paremeter asset: The asset to be written to memory
     private func writeToMemory(_ asset: KBAssetType) -> Single<KBAssetType> {
         let assetData = NSKeyedArchiver.archivedData(withRootObject: asset)
         memoryCache[asset.identifier] = assetData
@@ -255,9 +259,10 @@ public class KBStorageManager {
         return .just(asset)
     }
 
-    /// Check for an existing matching record, and if none exists write it to disk
+    /// Writes an asset to disk dependant on supplied options
     ///
-    /// - Parameter asset: The asset the be optionally writted to disk
+    /// - Parameter asset: The asset to be written to disk
+    /// - Parameter options: The write option parameters
     private func writeToDisk(_ asset: KBAssetType, options: KBWriteOption) -> Single<KBAssetType> {
         guard options.contains(.disk) else {
             return Single.error(KBStorageError.noWrite)
@@ -293,9 +298,9 @@ public class KBStorageManager {
             })
     }
 
-    /// Write the provided asset to disk
+    /// Writes an asset to disk
     ///
-    /// - Parameter asset: The asset to be written to disk
+    /// - Paremeter asset: The asset to be written to memory
     private func writeToDisk(_ asset: KBAssetType) -> Single<KBAssetType> {
         guard let contentURL = contentURL else {
             return Single.error(KBStorageError.badPath)

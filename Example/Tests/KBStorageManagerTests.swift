@@ -493,7 +493,7 @@ class KBStorageManagerTests: XCTestCase {
     }
 
     func testMemoryOptionalWriteAfterDiskWrite() {
-        // Writing to memory, and then writing to memory AND disk optionally
+        // Writing to disk, and then writing to disk AND memory optionally
         // Should return successful
         let someData = "text".data(using: .utf8)!
         let asset = KBDataAsset(identifier: "testMemoryOptionalWriteAfterDiskWrite".hashValue, data: someData)
