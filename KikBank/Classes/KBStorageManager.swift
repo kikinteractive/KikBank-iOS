@@ -392,22 +392,20 @@ extension KBStorageManager: KBStorageManagerType {
         var memoryError: Error?
 
         let diskWrite = writeToDisk(asset, options: writeOption)
-            .asObservable()
-            .catchError { (error) -> Observable<KBAssetType> in
+            .catchError { (error) -> Single<KBAssetType> in
                 diskError = error
                 return .just(asset)
         }
 
         let memoryWrite = writeToMemory(asset, options: writeOption)
-            .asObservable()
-            .catchError { (error) -> Observable<KBAssetType> in
+            .catchError { (error) -> Single<KBAssetType> in
                 memoryError = error
                 return .just(asset)
         }
 
-        return Observable
+        return Single
             .zip(diskWrite, memoryWrite) { return ($0, $1) }
-            .flatMap({ (_, _) -> Observable<KBAssetType> in
+            .flatMap({ (_, _) -> Single<KBAssetType> in
                 // Handle error cases
                 // If both disk and memory writes skipped
                 if (diskError as? KBStorageError) == KBStorageError.optionalSkip
@@ -446,8 +444,6 @@ extension KBStorageManager: KBStorageManagerType {
 
                 return .just(asset)
             })
-            .take(1)
-            .asSingle()
     }
 
     public func fetch(_ identifier: AnyHashable, readOption: KBReadOption) -> Single<KBAssetType> {
