@@ -64,10 +64,24 @@ public protocol KBStorageManagerType {
     /// Get any valid data defined by the provided identifier
     ///
     /// - Parameters
-    ///     - identifier: The unique identifier of the asset, Int hash value
+    ///     - identifier: The unique hashable identifier of the asset
     ///     - readOptions: The read policy of the request
     /// - Returns: An asset matching the key and read options, if availiable
     func fetch(_ identifier: AnyHashable, readOption: KBReadOption) -> Single<KBAssetType>
+
+    /// Deletes a single asset item from memory storage
+    ///
+    /// - Parameters
+    ///     - identifier: The unique hashable identifier of the asset
+    /// - Returns: A single sequence of the asset item that was successfully deleted
+    func deleteAssetFromMemory(_ identifier: AnyHashable) -> Single<KBAssetType>
+
+    /// Deletes a single asset item from disk storage
+    ///
+    /// - Parameters
+    ///     - identifier: The unique hashable identifier of the asset
+    /// - Returns: A single sequence of the asset item that was successfully deleted
+    func deleteAssetFromDisk(_ identifier: AnyHashable) -> Single<KBAssetType>
 
     /// Reset the in memory storage
     ///
@@ -137,7 +151,7 @@ public class KBStorageManager {
     /// Enqueues then runs an asset memory delete action
     ///
     private func runDeleteMemoryAction(with asset: KBAssetType) {
-        deleteAssetFromMemory(asset)
+        deleteAssetFromMemory(asset.identifier)
             .subscribe()
             .disposed(by: disposeBag)
     }
@@ -145,7 +159,7 @@ public class KBStorageManager {
     /// Enqueues then runs an asset disk delete action
     ///
     private func runDeleteDiskAction(with asset: KBAssetType) {
-        deleteAssetFromDisk(asset)
+        deleteAssetFromDisk(asset.identifier)
             .subscribe()
             .disposed(by: disposeBag)
     }
@@ -327,62 +341,6 @@ public class KBStorageManager {
             return .error(KBStorageError.generic(error: error))
         }
     }
-
-    /// Deletes the provided asset from memory storage
-    ///
-    /// - Parameter asset: The asset to be removed from memory
-    private func deleteAssetFromMemory(_ asset: KBAssetType) -> Completable {
-        return Completable
-            .create(subscribe: { [weak self] (completable) -> Disposable in
-                guard let this = self else {
-                    completable(.error(KBStorageError.deallocated))
-                    return Disposables.create()
-                }
-
-                this.logger.log(verbose: "KBStorageManager - Delete - Memory - \(asset.identifier)")
-
-                this.memoryCache[asset.identifier] = nil
-
-                completable(.completed)
-
-                return Disposables.create()
-            })
-    }
-
-    /// Deletes the provided asset from disk storage
-    ///
-    /// - Parameter asset: The asset to be removed from disk
-    private func deleteAssetFromDisk(_ asset: KBAssetType) -> Completable {
-        return Completable
-            .create(subscribe: { [weak self] (completable) -> Disposable in
-                guard let this = self else {
-                    completable(.error(KBStorageError.deallocated))
-                    return Disposables.create()
-                }
-
-                guard let pathURL = this.contentURL?.appendingPathComponent(asset.identifier.description) else {
-                    completable(.error(KBStorageError.badPath))
-                    return Disposables.create()
-                }
-
-                if FileManager.default.fileExists(atPath: pathURL.path) {
-                    do {
-                        try FileManager.default.removeItem(at: pathURL)
-                        this.logger.log(verbose: "KBStorageManager - Delete - Disk - \(asset.identifier)")
-
-                        completable(.completed)
-                    } catch {
-                        this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(asset.identifier)")
-
-                        completable(.error(KBStorageError.generic(error: error)))
-                    }
-                } else {
-                    completable(.error(KBStorageError.notFound))
-                }
-
-                return Disposables.create()
-            })
-    }
 }
 
 extension KBStorageManager: KBStorageManagerType {
@@ -493,6 +451,50 @@ extension KBStorageManager: KBStorageManagerType {
                 }
 
                 return .just(asset)
+            })
+    }
+
+    public func deleteAssetFromMemory(_ identifier: AnyHashable) -> Single<KBAssetType> {
+        return readAssetFromMemory(with: identifier)
+            .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
+                guard let this = self else {
+                    return Single.error(KBStorageError.deallocated)
+                }
+
+                this.logger.log(verbose: "KBStorageManager - Delete - Memory - \(asset.identifier)")
+
+                this.memoryCache[asset.identifier] = nil
+
+                return Single.just(asset)
+            })
+    }
+
+    public func deleteAssetFromDisk(_ identifier: AnyHashable) -> Single<KBAssetType> {
+        return readAssetFromDisk(with: identifier)
+            .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
+                guard let this = self else {
+                    return Single.error(KBStorageError.deallocated)
+                }
+
+                guard let pathURL = this.contentURL?.appendingPathComponent(asset.identifier.description) else {
+                    return Single.error(KBStorageError.badPath)
+                }
+
+                if FileManager.default.fileExists(atPath: pathURL.path) {
+                    do {
+                        try FileManager.default.removeItem(at: pathURL)
+
+                        this.logger.log(verbose: "KBStorageManager - Delete - Disk - \(asset.identifier)")
+
+                        return Single.just(asset)
+                    } catch {
+                        this.logger.log(error: "KBStorageManager - Delete - Disk - Error - \(asset.identifier)")
+
+                        return Single.error(KBStorageError.generic(error: error))
+                    }
+                } else {
+                    return Single.error(KBStorageError.notFound)
+                }
             })
     }
 
