@@ -97,11 +97,10 @@ public class KikBank {
     }
 
     private func runSaveOperation(asset: KBAssetType, options: KBParameters) {
-        storageManager.store(asset, writeOption: options.writeOption).subscribe(onCompleted: {
-
-        }) { (error) in
-
-        }.disposed(by: disposeBag)
+        storageManager
+            .store(asset, writeOption: options.writeOption)
+            .subscribe()
+            .disposed(by: disposeBag)
     }
 }
 

@@ -42,6 +42,14 @@ open class KBAsset: NSObject, KBAssetType {
         }
         return true
     }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let otherAsset = object as? KBAssetType else {
+            return false
+        }
+
+        return identifier == otherAsset.identifier && expiryDate == otherAsset.expiryDate
+    }
 }
 
 extension KBAsset: NSCoding {
