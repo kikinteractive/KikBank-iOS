@@ -30,7 +30,7 @@ open class KBAsset: NSObject, KBAssetType {
 
     public required init?(coder aDecoder: NSCoder) {
         guard let identifier = aDecoder.decodeObject(forKey: Constants.identifierKey) as? String else {
-            fatalError("IdentifierKey could not be found")
+            // unable to find an identifier
             return nil
         }
         
