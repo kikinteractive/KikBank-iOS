@@ -82,21 +82,5 @@ class ViewController: UIViewController {
             .disposed(by: disposeBag)
         
         imageView.image = nil
-        
-        print("Sleep 3")
-        sleep(3)
-        
-        let options3 = KBParameters()
-        options3.readOption = .disk
-        options3.writeOption = .none
-        
-        kikBank
-            .data(with: url, options: options3)
-            .map { (data) -> UIImage? in
-                return UIImage(data: data)
-            }
-            .asObservable()
-            .bind(to: imageView.rx.image)
-            .disposed(by: disposeBag)
     }
 }
