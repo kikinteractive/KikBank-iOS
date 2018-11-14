@@ -47,40 +47,39 @@ class ViewController: UIViewController {
 
         let url = URL(string: "https://placekitten.com/g/300/300")!
 
-//        let options1 = KBParameters()
-//        options1.readOption = .network
-//        options1.writeOption = [.memory, .disk]
-//
-//        kikBank
-//            .data(with: url, options: options1)
-//            .map { (data) -> UIImage? in
-//                return UIImage(data: data)
-//            }
-//            .asObservable()
-//            .bind(to: imageView.rx.image)
-//            .disposed(by: disposeBag)
+        let options1 = KBParameters()
+        options1.readOption = .network
+        options1.writeOption = [.memory, .disk]
+
+        kikBank
+            .data(with: url, options: options1)
+            .map { (data) -> UIImage? in
+                return UIImage(data: data)
+            }
+            .asObservable()
+            .bind(to: imageView.rx.image)
+            .disposed(by: disposeBag)
 
         print("Sleep 1")
         sleep(3)
 
         imageView.image = nil
 
-//        print("Sleep 2")
-//        sleep(3)
-//
-//        let options2 = KBParameters()
-//        options2.readOption = .memory
-//        options2.writeOption = .none
-//
-//        kikBank
-//            .data(with: url, options: options2)
-//            .map { (data) -> UIImage? in
-//                return UIImage(data: data)
-//            }
-//            .asObservable()
-//            .bind(to: imageView.rx.image)
-//            .disposed(by: disposeBag)
-//        
+        print("Sleep 2")
+        sleep(3)
+
+        let options2 = KBParameters()
+        options2.readOption = .memory
+        options2.writeOption = .none
+
+        kikBank
+            .data(with: url, options: options2)
+            .map { (data) -> UIImage? in
+                return UIImage(data: data)
+            }
+            .asObservable()
+            .bind(to: imageView.rx.image)
+            .disposed(by: disposeBag)
         
         imageView.image = nil
         
