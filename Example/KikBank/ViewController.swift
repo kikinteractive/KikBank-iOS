@@ -10,6 +10,7 @@ import UIKit
 import KikBank
 import RxSwift
 import RxCocoa
+import Foundation
 
 class ViewController: UIViewController {
 
@@ -46,33 +47,52 @@ class ViewController: UIViewController {
 
         let url = URL(string: "https://placekitten.com/g/300/300")!
 
-        let options1 = KBParameters()
-        options1.readOption = .network
-        options1.writeOption = .memory
-
-        kikBank
-            .data(with: url, options: options1)
-            .map { (data) -> UIImage? in
-                return UIImage(data: data)
-            }
-            .asObservable()
-            .bind(to: imageView.rx.image)
-            .disposed(by: disposeBag)
+//        let options1 = KBParameters()
+//        options1.readOption = .network
+//        options1.writeOption = [.memory, .disk]
+//
+//        kikBank
+//            .data(with: url, options: options1)
+//            .map { (data) -> UIImage? in
+//                return UIImage(data: data)
+//            }
+//            .asObservable()
+//            .bind(to: imageView.rx.image)
+//            .disposed(by: disposeBag)
 
         print("Sleep 1")
         sleep(3)
 
         imageView.image = nil
 
-        print("Sleep 2")
+//        print("Sleep 2")
+//        sleep(3)
+//
+//        let options2 = KBParameters()
+//        options2.readOption = .memory
+//        options2.writeOption = .none
+//
+//        kikBank
+//            .data(with: url, options: options2)
+//            .map { (data) -> UIImage? in
+//                return UIImage(data: data)
+//            }
+//            .asObservable()
+//            .bind(to: imageView.rx.image)
+//            .disposed(by: disposeBag)
+//        
+        
+        imageView.image = nil
+        
+        print("Sleep 3")
         sleep(3)
-
-        let options2 = KBParameters()
-        options2.readOption = .memory
-        options2.writeOption = .none
-
+        
+        let options3 = KBParameters()
+        options3.readOption = .disk
+        options3.writeOption = .none
+        
         kikBank
-            .data(with: url, options: options2)
+            .data(with: url, options: options3)
             .map { (data) -> UIImage? in
                 return UIImage(data: data)
             }
@@ -81,4 +101,3 @@ class ViewController: UIViewController {
             .disposed(by: disposeBag)
     }
 }
-

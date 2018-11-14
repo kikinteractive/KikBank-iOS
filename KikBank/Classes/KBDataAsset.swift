@@ -20,7 +20,7 @@ open class KBDataAsset: KBAsset, KBDataAssetType {
 
     public var data: Data
 
-    public required init(identifier: Int, data: Data) {
+    public required init(identifier: String, data: Data) {
         self.data = data
         super.init(identifier: identifier)
     }

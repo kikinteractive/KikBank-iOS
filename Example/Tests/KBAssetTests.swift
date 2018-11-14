@@ -14,13 +14,13 @@ class KBAssetTests: XCTestCase {
 
     // An asset should be valid by default
     func testExpiryNoDate() {
-        let asset = KBAsset(identifier: 1)
+        let asset = KBAsset(identifier: "1")
         XCTAssertTrue(asset.isValid)
     }
 
     // Setting an expiry date to the past should invalidate the asset
     func testExpiryHistoricDate() {
-        let asset = KBAsset(identifier: 1)
+        let asset = KBAsset(identifier: "1")
         let historicDate = Date(timeIntervalSinceNow: -3600)
         asset.expiryDate = historicDate
         XCTAssertLessThan(historicDate.timeIntervalSince1970, Date().timeIntervalSince1970)
@@ -29,7 +29,7 @@ class KBAssetTests: XCTestCase {
 
     // A future date should be valid
     func testExpiryFutureDate() {
-        let asset = KBAsset(identifier: 1)
+        let asset = KBAsset(identifier: "1")
         let futureDate = Date(timeIntervalSinceNow: 3600)
         asset.expiryDate = futureDate
         XCTAssertGreaterThan(futureDate.timeIntervalSince1970, Date().timeIntervalSince1970)

@@ -1,5 +1,5 @@
 PODS:
-  - KikBank (0.2.0):
+  - KikBank (0.5.1):
     - RxSwift (~> 4.0)
   - RxCocoa (4.1.2):
     - RxSwift (~> 4.0)
@@ -14,7 +14,7 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  KikBank: eec61eb42eff6eb45ef3e2efb53ddf6d9ec31ede
+  KikBank: eadd725dc875c4aeee0d324331184b651a2ddc7a
   RxCocoa: d88ba0f1f6abf040011a9eb4b539324fc426843a
   RxSwift: e49536837d9901277638493ea537394d4b55f570
 

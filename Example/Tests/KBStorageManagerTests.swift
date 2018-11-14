@@ -40,7 +40,7 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write to memory
     func testMemoryWrite() {
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testMemoryWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testMemoryWrite", data: someData)
 
         let expect = expectation(description: "testMemoryWrite")
         storageManager
@@ -58,7 +58,7 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write to disk
     func testDiskWrite() {
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testDiskWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testDiskWrite", data: someData)
 
         let expect = expectation(description: "testDiskWrite")
         storageManager
@@ -76,7 +76,7 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write and read from memory
     func testMemoryRead() {
         let someData = "text".data(using: .utf8)!
-        let identifier = "testMemoryRead".hashValue
+        let identifier = "testMemoryRead"
         let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testMemoryWrite")
@@ -108,7 +108,7 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write and read from disk
     func testDiskRead() {
         let someData = "text".data(using: .utf8)!
-        let identifier = "testDiskRead".hashValue
+        let identifier = "testDiskRead"
         let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testDiskWrite")
@@ -140,7 +140,7 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write to cache and then read from disk
     func testCacheThenDiskRead() {
         let someData = "text".data(using: .utf8)!
-        let identifier = "testDiskRead".hashValue
+        let identifier = "testDiskRead"
         let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "write")
@@ -172,7 +172,7 @@ class KBStorageManagerTests: XCTestCase {
     // Ability to write to disk and then read from cache
     func testDiskThenCacheRead() {
         let someData = "text".data(using: .utf8)!
-        let identifier = "testDiskRead".hashValue
+        let identifier = "testDiskRead"
         let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "write")
@@ -204,7 +204,7 @@ class KBStorageManagerTests: XCTestCase {
     // Clearing data
     func testClearMemory() {
         let someData = "text".data(using: .utf8)!
-        let identifier = "testClearMemory".hashValue
+        let identifier = "testClearMemory"
         let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testClearMemoryWrite")
@@ -254,7 +254,7 @@ class KBStorageManagerTests: XCTestCase {
 
     func testClearDisk() {
         let someData = "text".data(using: .utf8)!
-        let identifier = "testClearDisk".hashValue
+        let identifier = "testClearDisk"
         let asset = KBDataAsset(identifier: identifier, data: someData)
 
         let writeExpectation = expectation(description: "testClearDiskWrite")
@@ -305,7 +305,7 @@ class KBStorageManagerTests: XCTestCase {
     // Asset Expiry
     func testAssetExpiry() {
         let someData = "text".data(using: .utf8)!
-        let identifier = "testAssetExpiry".hashValue
+        let identifier = "testAssetExpiry"
         let asset = KBDataAsset(identifier: identifier, data: someData)
 
         // Set the expiry date to be in half a second
@@ -351,7 +351,7 @@ class KBStorageManagerTests: XCTestCase {
     // Optionality
     func testOptionalMemoryWrite() {
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testOptionalMemoryWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testOptionalMemoryWrite", data: someData)
 
         let expectWrite = expectation(description: "testOptionalMemoryWrite")
         storageManager
@@ -379,7 +379,7 @@ class KBStorageManagerTests: XCTestCase {
 
     func testOptionalDiskWrite() {
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testOptionalDiskWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testOptionalDiskWrite", data: someData)
 
         let expectWrite = expectation(description: "testOptionalDiskWrite")
         storageManager
@@ -409,7 +409,7 @@ class KBStorageManagerTests: XCTestCase {
         // Writing to memory once, and then trying again optionally should return .optionalSkip
         // But writing to memory the second time non-optionally should overwrite existing record and return successful
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testSecondayNonOptionalWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testSecondayNonOptionalWrite", data: someData)
 
         let expectWrite = expectation(description: "testSecondayNonOptionalWrite")
         storageManager
@@ -438,7 +438,7 @@ class KBStorageManagerTests: XCTestCase {
         // Writing to disk once, and then trying again optionally should return .optionalSkip
         // But writing to disk the second time non-optionally should overwrite existing record and return successful
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testSecondayNonOptionalDiskWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testSecondayNonOptionalDiskWrite", data: someData)
 
         let expectWrite = expectation(description: "testSecondayNonOptionalDiskWrite")
         storageManager
@@ -467,7 +467,7 @@ class KBStorageManagerTests: XCTestCase {
         // Writing to memory, and then writing to memory AND disk optionally
         // Should return successful
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testDiskOptionalWriteAfterMemoryWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testDiskOptionalWriteAfterMemoryWrite", data: someData)
 
         let expectWrite = expectation(description: "testDiskOptionalWriteAfterMemoryWrite")
         storageManager
@@ -496,7 +496,7 @@ class KBStorageManagerTests: XCTestCase {
         // Writing to disk, and then writing to disk AND memory optionally
         // Should return successful
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testMemoryOptionalWriteAfterDiskWrite".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testMemoryOptionalWriteAfterDiskWrite", data: someData)
 
         let expectWrite = expectation(description: "testMemoryOptionalWriteAfterDiskWrite")
         storageManager
@@ -524,7 +524,7 @@ class KBStorageManagerTests: XCTestCase {
     func testOptionalWriteNewData() {
         // Altering an assets data should force a rewrite
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testOptionalWriteNewData".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testOptionalWriteNewData", data: someData)
 
         let expectWrite = expectation(description: "testOptionalWriteNewData")
         storageManager
@@ -556,7 +556,7 @@ class KBStorageManagerTests: XCTestCase {
     func testOptionalWriteNewExpiryDate() {
         // Altering an assets expiry date should force a rewrite
         let someData = "text".data(using: .utf8)!
-        let asset = KBDataAsset(identifier: "testOptionalWriteNewExpiryDate".hashValue, data: someData)
+        let asset = KBDataAsset(identifier: "testOptionalWriteNewExpiryDate", data: someData)
         asset.expiryDate = Date().addingTimeInterval(10)
 
         let expectWrite = expectation(description: "testOptionalWriteNewExpiryDate")

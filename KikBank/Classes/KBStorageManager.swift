@@ -64,24 +64,24 @@ public protocol KBStorageManagerType {
     /// Get any valid data defined by the provided identifier
     ///
     /// - Parameters
-    ///     - identifier: The unique hashable identifier of the asset
+    ///     - identifier: The unique identifier of the asset
     ///     - readOptions: The read policy of the request
     /// - Returns: An asset matching the key and read options, if availiable
-    func fetch(_ identifier: AnyHashable, readOption: KBReadOption) -> Single<KBAssetType>
+    func fetch(_ identifier: String, readOption: KBReadOption) -> Single<KBAssetType>
 
     /// Deletes a single asset item from memory storage
     ///
     /// - Parameters
-    ///     - identifier: The unique hashable identifier of the asset
+    ///     - identifier: The unique identifier of the asset
     /// - Returns: A single sequence of the asset item that was successfully deleted
-    func deleteAssetFromMemory(_ identifier: AnyHashable) -> Single<KBAssetType>
+    func deleteAssetFromMemory(_ identifier: String) -> Single<KBAssetType>
 
     /// Deletes a single asset item from disk storage
     ///
     /// - Parameters
-    ///     - identifier: The unique hashable identifier of the asset
+    ///     - identifier: The unique identifier of the asset
     /// - Returns: A single sequence of the asset item that was successfully deleted
-    func deleteAssetFromDisk(_ identifier: AnyHashable) -> Single<KBAssetType>
+    func deleteAssetFromDisk(_ identifier: String) -> Single<KBAssetType>
 
     /// Reset the in memory storage
     ///
@@ -105,7 +105,7 @@ public class KBStorageManager {
     private let cachePathExtension: String
 
     /// The in memory asset cache
-    private lazy var memoryCache = [Int: Data]()
+    private lazy var memoryCache = [String: Data]()
 
     /// Delete operation queue
     private lazy var deleteSubject = PublishSubject<KBAssetType>()
@@ -168,7 +168,7 @@ public class KBStorageManager {
     ///
     /// - Parameter key: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
-    private func readAssetFromMemory(with identifier: AnyHashable) -> Single<KBAssetType> {
+    private func readAssetFromMemory(with identifier: String) -> Single<KBAssetType> {
         return Single
             .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
@@ -177,7 +177,7 @@ public class KBStorageManager {
                 }
 
                 guard
-                    let assetData = this.memoryCache[identifier.hashValue],
+                    let assetData = this.memoryCache[identifier],
                     let asset = NSKeyedUnarchiver.unarchiveObject(with: assetData) as? KBAssetType else {
                         single(.error(KBStorageError.notFound))
                         return Disposables.create()
@@ -196,7 +196,7 @@ public class KBStorageManager {
     ///
     /// - Parameter key: The unique identifier of the data
     /// - Returns: An asset matching the provided key, if one exists
-    private func readAssetFromDisk(with identifier: AnyHashable) -> Single<KBAssetType> {
+    private func readAssetFromDisk(with identifier: String) -> Single<KBAssetType> {
         return Single
             .create(subscribe: { [weak self] (single) -> Disposable in
                 guard let this = self else {
@@ -344,7 +344,7 @@ public class KBStorageManager {
 }
 
 extension KBStorageManager: KBStorageManagerType {
-
+    
     public func store(_ asset: KBAssetType, writeOption: KBWriteOption) -> Single<KBAssetType> {
         var diskError: Error?
         var memoryError: Error?
@@ -404,7 +404,7 @@ extension KBStorageManager: KBStorageManagerType {
             })
     }
 
-    public func fetch(_ identifier: AnyHashable, readOption: KBReadOption) -> Single<KBAssetType> {
+    public func fetch(_ identifier: String, readOption: KBReadOption) -> Single<KBAssetType> {
         // Check for restricted read types
         if readOption == .network {
             // Nothing to do
@@ -454,7 +454,7 @@ extension KBStorageManager: KBStorageManagerType {
             })
     }
 
-    public func deleteAssetFromMemory(_ identifier: AnyHashable) -> Single<KBAssetType> {
+    public func deleteAssetFromMemory(_ identifier: String) -> Single<KBAssetType> {
         return readAssetFromMemory(with: identifier)
             .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
                 guard let this = self else {
@@ -469,7 +469,7 @@ extension KBStorageManager: KBStorageManagerType {
             })
     }
 
-    public func deleteAssetFromDisk(_ identifier: AnyHashable) -> Single<KBAssetType> {
+    public func deleteAssetFromDisk(_ identifier: String) -> Single<KBAssetType> {
         return readAssetFromDisk(with: identifier)
             .flatMap({ [weak self] (asset) -> Single<KBAssetType> in
                 guard let this = self else {
@@ -506,7 +506,7 @@ extension KBStorageManager: KBStorageManagerType {
                     return Disposables.create()
                 }
 
-                this.memoryCache = [Int: Data]()
+                this.memoryCache = [String: Data]()
 
                 this.logger.log(verbose: "KBStorageManager - Delete - Memory - All")
 
