@@ -29,7 +29,12 @@ open class KBAsset: NSObject, KBAssetType {
     
 
     public required init?(coder aDecoder: NSCoder) {
-        self.identifier = aDecoder.decodeObject(forKey: Constants.identifierKey) as? String ?? ""
+        guard let identifier = aDecoder.decodeObject(forKey: Constants.identifierKey) as? String else {
+            fatalError("IdentifierKey could not be found")
+            return nil
+        }
+        
+        self.identifier =  identifier
         self.expiryDate = aDecoder.decodeObject(forKey: Constants.expiryKey) as? Date
     }
 
