@@ -59,6 +59,13 @@ public protocol KikBankType {
 }
 
 public class KikBank {
+    
+    // Reserved characters that should not be a part of the created identifier
+    private let reservedCharacters = "[\\\\/:*?\"<>|]"
+    
+    private lazy var identifierRegEx: NSRegularExpression = {
+        return try! NSRegularExpression(pattern: self.reservedCharacters, options: .caseInsensitive)
+    }()
 
     private struct Constants {
         static let pathExtension = "KBStorage"
@@ -122,10 +129,13 @@ extension KikBank: KikBankType {
 
     public func data(with request: URLRequest, options: KBParameters) -> Single<Data> {
         guard
-            let identifier = request.url?.absoluteString.hashValue // Rethink this
+            let absoluteString = request.url?.absoluteString
             else {
                 return .error(KBError.badRequest)
         }
+        
+        // create an identifier based on the url provided to the asset
+        let identifier = identifierRegEx.stringByReplacingMatches(in: absoluteString, options: .reportProgress, range: NSRange(location: 0, length: absoluteString.count), withTemplate: "")
 
         // Prepare the read operation
         let readOperation = storageManager.fetch(identifier, readOption: options.readOption)

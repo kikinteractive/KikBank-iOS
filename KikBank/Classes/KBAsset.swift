@@ -16,18 +16,25 @@ open class KBAsset: NSObject, KBAssetType {
     }
 
     /// The unique identifer of the data request
-    public var identifier: Int
-
+    public var identifier: String
+    
     /// The date at which to invalidate the stored data
     public var expiryDate: Date?
 
-    public init(identifier: AnyHashable) {
-        self.identifier = identifier.hashValue
+    public init(identifier: String) {
+        
+        self.identifier = identifier
         super.init()
     }
+    
 
     public required init?(coder aDecoder: NSCoder) {
-        self.identifier = aDecoder.decodeInteger(forKey: Constants.identifierKey)
+        guard let identifier = aDecoder.decodeObject(forKey: Constants.identifierKey) as? String else {
+            // unable to find an identifier
+            return nil
+        }
+        
+        self.identifier =  identifier
         self.expiryDate = aDecoder.decodeObject(forKey: Constants.expiryKey) as? Date
     }
 

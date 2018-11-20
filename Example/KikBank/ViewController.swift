@@ -10,6 +10,7 @@ import UIKit
 import KikBank
 import RxSwift
 import RxCocoa
+import Foundation
 
 class ViewController: UIViewController {
 
@@ -48,7 +49,7 @@ class ViewController: UIViewController {
 
         let options1 = KBParameters()
         options1.readOption = .network
-        options1.writeOption = .memory
+        options1.writeOption = [.memory, .disk]
 
         kikBank
             .data(with: url, options: options1)
@@ -79,6 +80,7 @@ class ViewController: UIViewController {
             .asObservable()
             .bind(to: imageView.rx.image)
             .disposed(by: disposeBag)
+        
+        imageView.image = nil
     }
 }
-
