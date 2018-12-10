@@ -231,7 +231,7 @@ public class KBStorageManager {
             return Single.error(KBStorageError.noWrite)
         }
 
-        guard options.contains(.optional) else {
+        guard !options.contains(.optional) else {
             return writeToMemory(asset)
         }
 
@@ -282,7 +282,7 @@ public class KBStorageManager {
             return Single.error(KBStorageError.noWrite)
         }
 
-        guard options.contains(.optional) else {
+        guard !options.contains(.optional) else {
             return writeToDisk(asset)
         }
 
