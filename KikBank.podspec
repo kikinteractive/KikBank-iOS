@@ -18,6 +18,6 @@ Pod::Spec.new do |s|
 
   s.source_files  = "KikBank/Classes/**/*"
 
-  s.dependency 'RxSwift', '~> 4.0'
+  s.dependency 'RxSwift', '~> 4.1.2'
 
 end
